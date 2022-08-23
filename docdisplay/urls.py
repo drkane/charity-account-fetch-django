@@ -30,4 +30,6 @@ urlpatterns = [
     path("doc/<int:id>", main_views.doc_get, name="doc.doc_get"),
     path("doc/<int:id>/embed", main_views.doc_get_embed, name="doc.doc_get_embed"),
     path("doc/<int:id>.pdf", main_views.doc_get_pdf, name="doc.doc_get_pdf"),
+    path("charity/search", main_views.charity_search, name="charity.charity_search"),
+    path("charity/<str:regno>", main_views.charity_get, name="charity.charity_get"),
 ]

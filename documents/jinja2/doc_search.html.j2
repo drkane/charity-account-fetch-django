@@ -5,6 +5,9 @@
         <h2>Search within documents</h2>
         <form>
             {{ search(q, 'Term to find in document', show_guidance=true) }}
+            {% for tag in tags %}
+            <input type="hidden" name="tag" value="{{ tag }}">
+            {% endfor %}
         </form>
         {% if tags %}
         <ul class="list mt3 mb0 pa0 mh0">

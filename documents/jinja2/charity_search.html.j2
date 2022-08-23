@@ -1,0 +1,30 @@
+{% from '_search.html.j2' import search %}
+{% extends "base.html.j2" %}
+{% block content %}
+    <h2>Search for a charity</h2>
+    <form>
+        {{ search(q, 'Charity') }}
+    </form>
+    {% if page_obj %}
+        <p class="f6 gray mb4">
+            {% if page_obj.paginator.num_pages != 1 %}
+            {{ page_obj.start_index() }} - {{page_obj.end_index() }} of {{page_obj.paginator.count}} results
+            {% else %}
+            {{ page_obj.paginator.count }} results
+            {% endif %}
+        </p>
+    <ul class="list ma0 pa0">
+        {% for r in page_obj %}
+        <li class="mb3">
+            <p class="pv0 mt0 mb2 f3">
+                <a href="{{ url_for('charity.charity_get', regno=r.org_id) }}" class="link dark-blue underline-hover b">
+                {{r.name|to_titlecase-}} 
+                </a>
+                <br><span class="gray f5">{{r.org_id }} | {{ r.financial_years.count() }} years</span>
+            </p>
+        </li>
+        {% endfor %}
+    </ul>
+    {% include '_pagination.html.j2' %}
+    {% endif %}
+{% endblock content %}

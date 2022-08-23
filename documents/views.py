@@ -5,18 +5,33 @@ import markupsafe
 import csv
 from django.http import HttpResponse
 from django.utils.text import slugify
-
+from django.core.paginator import Paginator
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from documents.documents import (
     DocumentDocument as DocumentModel,
     ElasticsearchPaginator,
 )
-from documents.models import Document
+from documents.models import Document, Charity
 from elasticsearch_dsl.query import SimpleQueryString, Terms
 from elasticsearch_dsl import A
 
 
 def index(request):
-    return render(request, "index.html.j2", {"docs": 100, "q": None})
+    s = DocumentModel.search()
+    tag_agg = A("terms", field="tags")
+    s.aggs.bucket("per_tag", tag_agg)
+    s = s.extra(track_total_hits=True)
+    response = s.execute()
+    tag_counts = response.aggregations.per_tag.buckets
+    return render(
+        request,
+        "index.html.j2",
+        {
+            "docs": response.hits.total.value,
+            "q": None,
+            "tag_counts": tag_counts,
+        },
+    )
 
 
 def search(request, filetype="html"):
@@ -24,8 +39,8 @@ def search(request, filetype="html"):
     page_number = request.GET.get("page")
     tags = request.GET.getlist("tag")
     results = {}
+    s = DocumentModel.search()
     if q:
-        s = DocumentModel.search()
         s = (
             s.query(
                 SimpleQueryString(
@@ -43,9 +58,10 @@ def search(request, filetype="html"):
                 post_tags=["</em>"],
             )
         )
-        if tags:
-            s = s.filter("terms", tags=tags)
+    if tags:
+        s = s.filter("terms", tags=tags)
 
+    if q or tags:
         if filetype == "csv":
             response = HttpResponse(
                 content_type="text/csv",
@@ -172,3 +188,30 @@ def get_doc(id, q=None):
             ][0]
         return result
     return {}
+
+
+def charity_search(request):
+    q = request.GET.get("q")
+    vector = SearchVector("name")
+    search_query = SearchQuery(q)
+    query = (
+        Charity.objects.annotate(
+            search=vector,
+        )
+        .filter(search=search_query)
+        .annotate(rank=SearchRank(vector, search_query))
+        .order_by("-rank")
+    )
+    paginator = Paginator(query, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(request, "charity_search.html.j2", {"page_obj": page_obj, "q": q})
+
+
+def charity_get(request, regno, filetype="html"):
+    charity = get_object_or_404(Charity, org_id=regno)
+    return render(
+        request,
+        "charity.html.j2",
+        {"charity": charity, "filetype": filetype},
+    )

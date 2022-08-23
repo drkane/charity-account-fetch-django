@@ -5,6 +5,7 @@ from jinja2 import Environment
 from django.urls import reverse, NoReverseMatch
 from django.shortcuts import resolve_url
 from django.utils.text import slugify
+from ccew.utils import to_titlecase
 
 
 def url_for(
@@ -14,6 +15,7 @@ def url_for(
         return resolve_url(endpoint)
     url = None
     k = None
+    values = {k: v for k, v in values.items() if v is not None}
     potential_args = list(values.values())
     for k in range(len(potential_args) + 1):
         try:
@@ -86,6 +88,7 @@ def environment(**options):
             "dateformat": dateformat_filter,
             "replace_url_params": replace_url_params,
             "slugify": slugify,
+            "to_titlecase": to_titlecase,
         }
     )
     return env

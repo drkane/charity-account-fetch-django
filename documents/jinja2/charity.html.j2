@@ -1,0 +1,46 @@
+{% extends "base.html.j2" %}
+{% block content %}
+    <h2 class="ma0 pa0">{{charity.name}}</h2>
+    <h3 class="ma0 pa0 normal gray">Charity <code>{{charity.org_id}}</code></h3>
+    {% if charity.financial_years.exists() %}
+    <p>Accounts:</p>
+    <table class="table f4 collapse">
+        <thead>
+            <tr>
+                <th class="bb bw1 b--light-gray tl pr4">Financial year end</th>
+                <th class="bb bw1 b--light-gray tr ph3">Income</th>
+                <th class="bb bw1 b--light-gray tr ph3">Spending</th>
+                <th class="bb bw1 b--light-gray tl pr4"></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for r in charity.financial_years.all() %}
+            <tr>
+                <td class="pr4">{{ '{:%d %b %Y}'.format(r.financial_year_end|dateformat) }}</td>
+                <td class="tr ph3">£{{ '{:,.0f}'.format(r.income) }}</td>
+                <td class="tr ph3">£{{ '{:,.0f}'.format(r.expenditure) }}</td>
+                <td class="pr4">
+                    {% if r.documents.exists() %}
+                    {% for doc in r.documents.all() %}
+                    <a href="{{url_for('doc.doc_get', id=doc.id)}}" class="link pointer blue underline-hover">View document</a>
+                    {% endfor %}
+                    {% elif r.url %}
+                    <form action="{{ url_for('doc.doc_upload')}}" method="POST">
+                        <input type="hidden" class="dn" name="regno" value="{{charity.org_id}}" />
+                        <input type="hidden" class="dn" name="url" value="{{r.url}}" />
+                        <input type="hidden" class="dn" name="fye" value="{{ r.fyend }}" />
+                        <input type="hidden" class="dn" name="income" value="{{ r.income }}" />
+                        <input type="hidden" class="dn" name="spending" value="{{ r.expenditure }}" />
+                        <button type="submit" class="link button-reset base-font bn pa0 ma0 bg-inherit pointer blue underline-hover">
+                            Import PDF
+                        </button>
+                        {% if r.size %}[{{ r.size|filesizeformat }}]{% endif %}
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+{% endblock content %}

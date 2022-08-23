@@ -2,7 +2,7 @@
 {% extends "base.html.j2" %}
 {% block content %}
     <ul class="list ma0 pa0 f4">
-        <li class="mb5 db">
+        <li class="mb4 db">
             <h3 class="ma0 pa0">
                 <a href="{{url_for('doc.doc_search')}}" class="link underline-hover near-black">
                     Search in documents
@@ -16,6 +16,14 @@
             <form action="{{url_for('doc.doc_search')}}">
                 {{ search(q, 'Term to find in document', 'Search documents', show_guidance=true) }}
             </form>
+            <ul class="list db cf mt3 mb0 pa0">
+                {% for tag in tag_counts %}
+                <li class="bg-light-gray near-black dib mb2 mr2 f6">
+                    <a href="{{ url_for('doc.doc_search')|replace_url_params(tag=tag.key) }}" class="link near-black underline-hover pv1 ph2 dib fl">{{ tag.key }}</a>
+                    <span class="pv1 ph2 bg-blue white fl">{{ tag.doc_count}}</span>
+                </li>
+                {% endfor %}
+            </ul>
         </li>
         <li class="mb5 db">
             <h3 class="ma0 pa0">
