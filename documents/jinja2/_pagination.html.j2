@@ -1,0 +1,17 @@
+{% if page_obj %}
+<nav class="f5 mt4 db">
+    {% if page_obj.has_previous() %}
+    <a href="{{ request.get_full_path()|replace_url_params(page=1) }}" class="link blue underline-hover pr3">&laquo; First</a>
+    {% endif %}
+    {% if page_obj.has_previous() and page_obj.previous_page_number() != 1%}
+    <a href="{{ request.get_full_path()|replace_url_params(page=page_obj.previous_page_number()) }}" class="link blue underline-hover pr3">&lsaquo; Prev</a>
+    {% endif %}
+    <span class="f5 pr3">Page {{page_obj.number}} of {{page_obj.paginator.num_pages}}</span>
+    {% if page_obj.has_next() and page_obj.next_page_number() != page_obj.paginator.num_pages %}
+    <a href="{{ request.get_full_path()|replace_url_params(page=page_obj.next_page_number()) }}" class="link blue underline-hover pr3">Next &rsaquo;</a>
+    {% endif %}
+    {% if page_obj.paginator.num_pages and page_obj.has_next() %}
+    <a href="{{ request.get_full_path()|replace_url_params(page=page_obj.paginator.num_pages) }}" class="link blue underline-hover pr3">Last &raquo;</a>
+    {% endif %}
+</nav>
+{% endif %}

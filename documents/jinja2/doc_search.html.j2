@@ -1,0 +1,71 @@
+{% from '_search.html.j2' import search %}
+{% extends "base.html.j2" %}
+{% block content %}
+    <div class="w-70">
+        <h2>Search within documents</h2>
+        <form>
+            {{ search(q, 'Term to find in document', show_guidance=true) }}
+        </form>
+        {% if tags %}
+        <ul class="list mt3 mb0 pa0 mh0">
+        {% for tag in tags %}
+        <li class="bg-light-gray near-black dib mb2 mr2 f6 br2">
+            <a href="{{ request.get_full_path()|replace_url_params(tag=null) }}" class="link near-black underline-hover pv1 ph2 dib fl">
+            {{ tag }} &#10006;
+            </a>
+        </li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    <div class="w-70 fl pr3">
+        {% if page_obj %}
+        <p class="f6 gray mb4">
+            {% if page_obj.paginator.num_pages != 1 %}
+            {{ page_obj.start_index() }} - {{page_obj.end_index() }} of {{page_obj.paginator.count}} results
+            {% else %}
+            {{ page_obj.paginator.count }} results
+            {% endif %}
+            | <a href="{{downloadUrl}}" class="link blue">Download CSV</a>
+        </p>
+        <ul class="list ma0 pa0">
+            {% for r in page_obj %}
+            <li class="mb5">
+                <p class="pv0 mt0 mb2 f3">
+                    <a href="{{ url_for('doc.doc_get', id=r.meta.id, q=q) }}" class="link dark-blue underline-hover b">
+                    {%- if r.charity_org_id and r.financial_year_end %}
+                        {{r.charity_name -}}
+                    {% else %}
+                        Document {{r.meta.id-}}
+                    {% endif %}
+                    ({{ r.financial_year_end|dateformat("%d %B %Y") }})
+                    </a>
+                 <br><span class="gray f5">{{r.charity_org_id }}</span>
+                 </p>
+                {% if r.meta.highlight %}
+                {% for s in r.meta.highlight["attachment.content"] %}
+                <blockquote class="pa2 bg-washed-yellow b--light-gray bw1 ba f6 sans-serif base-font mh0 mt0 mb2">{{s|safe}}</blockquote>
+                {% endfor %}
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% include '_pagination.html.j2' %}
+    </div>
+    <div class="w-30 fl">
+        {% if tag_counts %}
+        <h3>Tags</h3>
+        <ul class="list db cf ma0 pa0">
+            {% for tag in tag_counts %}
+            <li class="bg-light-gray near-black dib mb2 mr2 f6">
+                <a href="{{ request.get_full_path()|replace_url_params(tag=tag.key) }}" class="link near-black underline-hover pv1 ph2 dib fl">{{ tag.key }}</a>
+                <span class="pv1 ph2 bg-blue white fl">{{ tag.doc_count}}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+    {% else %}
+    <p class="mb5">No results found</p>
+    {% endif %}
+{% endblock content %}

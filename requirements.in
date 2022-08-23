@@ -1,0 +1,17 @@
+django
+inflect
+titlecase
+django-q
+dj-database-url
+psycopg2_binary
+requests
+requests_cache
+tqdm
+faker
+black
+isort
+django-elasticsearch-dsl
+django-q
+jinja2
+pdfplumber
+python-dotenv
