@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.db.models import Count
 from django.utils.translation import gettext_lazy as _
 
+from ccew.utils import to_titlecase
 from documents.models import Charity, CharityFinancialYear, Document, Tag
 
 
@@ -51,13 +52,13 @@ class DocumentAdminList(admin.StackedInline):
 @admin.register(Charity)
 class CharityAdmin(admin.ModelAdmin):
     list_display = (
-        "name",
+        "charity_name",
         "org_id",
         "date_registered",
         "date_removed",
         "source",
     )
-    list_display_links = ("name",)
+    list_display_links = ("charity_name",)
     list_filter = (
         ActiveCharityListFilter,
         "source",
@@ -77,6 +78,9 @@ class CharityAdmin(admin.ModelAdmin):
         "date_removed",
         "source",
     )
+
+    def charity_name(self, instance):
+        return to_titlecase(instance.name)
 
     def has_delete_permission(self, request, obj=None):
         return False
@@ -137,7 +141,7 @@ class CharityFinancialYearAdmin(admin.ModelAdmin):
     )
 
     def charity_name(self, record):
-        return record.charity.name
+        return to_titlecase(record.charity.name)
 
     def charity_org_id(self, record):
         return record.charity.org_id
@@ -155,9 +159,44 @@ class CharityFinancialYearAdmin(admin.ModelAdmin):
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     raw_id_fields = ("financial_year",)
-    readonly_fields = ("content", "content_length", "pages")
+    readonly_fields = ("content", "content_length", "pages", "content_type", "language")
+    list_display = (
+        "charity_name",
+        "charity_org_id",
+        "financial_year_end",
+        "pages",
+        "content_type",
+        "language",
+    )
+    list_display_links = (
+        "charity_name",
+        "financial_year_end",
+    )
+    search_fields = (
+        "financial_year__charity__name",
+        "financial_year__charity__org_id",
+    )
+
+    def charity_name(self, record):
+        return to_titlecase(record.financial_year.charity.name)
+
+    def charity_org_id(self, record):
+        return record.financial_year.charity.org_id
+
+    def financial_year_end(self, record):
+        return record.financial_year.financial_year_end
 
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        "name",
+        "charities_count",
+        "documents_count",
+    )
+
+    def charities_count(self, instance):
+        return instance.charities.count()
+
+    def documents_count(self, instance):
+        return instance.documents.count()

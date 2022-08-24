@@ -1,35 +1,8 @@
-import datetime
-
-import pdfplumber
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from ccew.utils import to_titlecase
-
-
-class DocumentUploadError(Exception):
-    pass
-
-
-def convert_file(source):
-    with pdfplumber.open(source) as pdf:
-        content = "\n\n".join(
-            [
-                "<span id='page-{}'></span>\n{}".format(i, p.extract_text())
-                for i, p in enumerate(pdf.pages)
-                if p.extract_text()
-            ]
-        )
-        if not content:
-            raise DocumentUploadError("No content found in PDF")
-        return {
-            "content": content,
-            "content_length": len(content),
-            "pages": len(pdf.pages),
-            "content_type": "application/pdf",
-            "language": "en",
-            "date": datetime.datetime.now(),
-        }
+from documents.utils import convert_file
 
 
 class Tag(models.Model):
@@ -43,11 +16,13 @@ class Tag(models.Model):
         return self.name
 
 
+class Regulators(models.TextChoices):
+    CCEW = "CCEW", _("Charity Commission for England and Wales")
+    OSCR = "OSCR", _("Office of the Scottish Charity Regulator")
+    CCNI = "CCNI", _("Charity Commission for Northern Ireland")
+
+
 class Charity(models.Model):
-    class Regulators(models.TextChoices):
-        CCEW = "CCEW", _("Charity Commission for England and Wales")
-        OSCR = "OSCR", _("Office of the Scottish Charity Regulator")
-        CCNI = "CCNI", _("Charity Commission for Northern Ireland")
 
     org_id = models.CharField(max_length=50, primary_key=True)
     source = models.CharField(max_length=4, choices=Regulators.choices, null=True)
@@ -55,7 +30,7 @@ class Charity(models.Model):
     date_registered = models.DateField(null=True)
     date_removed = models.DateField(null=True)
 
-    tags = models.ManyToManyField(Tag, blank=True)
+    tags = models.ManyToManyField(Tag, blank=True, related_name="charities")
 
     @property
     def is_active(self):
@@ -116,7 +91,7 @@ class Document(models.Model):
     pages = models.IntegerField(blank=True, null=True)
     file = models.FileField(upload_to="data/documents", blank=True, null=True)
 
-    tags = models.ManyToManyField(Tag, blank=True)
+    tags = models.ManyToManyField(Tag, blank=True, related_name="documents")
 
     def save(self, *args, **kwargs):
         if not self.content:
@@ -124,6 +99,8 @@ class Document(models.Model):
             self.content = filedata["content"]
             self.content_length = filedata["content_length"]
             self.pages = filedata["pages"]
+            self.content_type = filedata["content_type"]
+            self.language = filedata["language"]
         if not self.content_length:
             self.content_length = len(self.content)
         super().save(*args, **kwargs)

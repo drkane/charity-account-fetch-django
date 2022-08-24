@@ -3,9 +3,9 @@ inflect
 titlecase
 django-q
 dj-database-url
-psycopg2_binary
+psycopg2-binary
 requests
-requests_cache
+requests-cache
 tqdm
 faker
 black
@@ -15,3 +15,6 @@ django-q
 jinja2
 pdfplumber
 python-dotenv
+requests-html
+python-dateutil
+ocrmypdf
