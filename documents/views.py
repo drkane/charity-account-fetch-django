@@ -2,6 +2,7 @@ import csv
 import io
 
 import markupsafe
+from django.contrib.auth.decorators import permission_required, login_required
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.paginator import Paginator
 from django.http import FileResponse, HttpResponse, JsonResponse
@@ -192,6 +193,8 @@ def get_doc(id, q=None):
     return {}
 
 
+@login_required
+@permission_required("documents.add_document")
 def doc_upload_bulk(request):
     return render(request, "doc_upload_bulk.html.j2")
 
@@ -326,6 +329,7 @@ def get_status(record: CharityFinancialYear, documents):
     return "Available to fetch"
 
 
+@permission_required("documents.add_document")
 def bulk_load_list(request):
 
     charity_list = io.StringIO(request.POST.get("list"))
@@ -377,6 +381,7 @@ def bulk_load_list(request):
     )
 
 
+@permission_required("documents.add_document")
 def bulk_record_status(request, fy_id):
     fy = get_object_or_404(CharityFinancialYear, id=fy_id)
     return render(

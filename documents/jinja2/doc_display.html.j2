@@ -19,9 +19,11 @@
     {% else %}
     <h2>Document <code>{{result.id}}</code></h2>
     {% endif %}
+    <div class="cf w-100">
     {% for tag in result.tags.all() %}
-    <span class="pv2 ph3 br-pill bg-gray white f6 mr2 mb2">Tag: {{ tag }}</span>
+    <span class="pv2 ph3 br-pill bg-light-gray black f6 mr2 mb2 dib fl">Tag: {{ tag }}</span>
     {% endfor %}
+    </div>
     {% if result.pages %}
     <p>{{result.pages}} pages</p>
     {% endif %}
