@@ -28,9 +28,35 @@ urlpatterns = [
         name="doc.doc_search_csv",
         kwargs={"filetype": "csv"},
     ),
+    path("doc/bulkupload", main_views.doc_upload_bulk, name="doc.doc_upload_bulk"),
     path("doc/<int:id>", main_views.doc_get, name="doc.doc_get"),
     path("doc/<int:id>/embed", main_views.doc_get_embed, name="doc.doc_get_embed"),
     path("doc/<int:id>.pdf", main_views.doc_get_pdf, name="doc.doc_get_pdf"),
     path("charity/search", main_views.charity_search, name="charity.charity_search"),
+    path(
+        "charity/<str:regno>.json",
+        main_views.charity_get,
+        name="charity.charity_get_json",
+        kwargs={"filetype": "json"},
+    ),
     path("charity/<str:regno>", main_views.charity_get, name="charity.charity_get"),
+    path(
+        "task/fetch_accounts/<str:org_id>/<str:fyend>",
+        main_views.task_fetch_accounts,
+        name="task.task_fetch_accounts",
+    ),
+    path(
+        "task/<str:task_id>",
+        main_views.task_get_status,
+        name="task.task_get_status",
+    ),
+    path(
+        "bulk/list_charities",
+        main_views.bulk_load_list,
+    ),
+    path(
+        "bulk/record_status/<int:fy_id>",
+        main_views.bulk_record_status,
+        name="bulk.bulk_record_status",
+    ),
 ]

@@ -1,18 +1,21 @@
 import csv
+import io
 
 import markupsafe
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.core.paginator import Paginator
-from django.http import FileResponse, HttpResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render, resolve_url
 from django.utils.text import slugify
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django_q.tasks import Task, async_task
 from elasticsearch_dsl import A
 from elasticsearch_dsl.query import SimpleQueryString, Terms
 
 from documents.documents import DocumentDocument as DocumentModel
 from documents.documents import ElasticsearchPaginator
-from documents.models import Charity, Document
+from documents.fetch import fetch_documents_for_charity
+from documents.models import Charity, CharityFinancialYear, Document, Tag
 
 
 def index(request):
@@ -189,6 +192,10 @@ def get_doc(id, q=None):
     return {}
 
 
+def doc_upload_bulk(request):
+    return render(request, "doc_upload_bulk.html.j2")
+
+
 def charity_search(request):
     q = request.GET.get("q")
     vector = SearchVector("name")
@@ -209,8 +216,171 @@ def charity_search(request):
 
 def charity_get(request, regno, filetype="html"):
     charity = get_object_or_404(Charity, org_id=regno)
+    if filetype == "json":
+        return JsonResponse(
+            {
+                "data": {
+                    "results": {},
+                    "charity": {
+                        "name": charity.name,
+                        "finances": [
+                            {
+                                "fyend": fy.financial_year_end,
+                                "income": fy.income,
+                                "expenditure": fy.expenditure,
+                                "documents": [
+                                    {
+                                        "id": doc.id,
+                                        "pages": doc.pages,
+                                        "content_type": doc.content_type,
+                                    }
+                                    for doc in fy.documents.all()
+                                ],
+                                "task_id": fy.task_id,
+                            }
+                            for fy in charity.financial_years.order_by(
+                                "-financial_year_end"
+                            ).all()
+                        ],
+                    },
+                    "regno": regno,
+                }
+            }
+        )
     return render(
         request,
         "charity.html.j2",
         {"charity": charity, "filetype": filetype},
+    )
+
+
+def task_fetch_accounts(request, org_id, fyend):
+    charity = get_object_or_404(Charity, org_id=org_id)
+    charity_financial_year = get_object_or_404(
+        CharityFinancialYear, charity=charity, financial_year_end=fyend
+    )
+    task_id = async_task(
+        fetch_documents_for_charity,
+        charity_financial_year.charity.org_id,
+        charity_financial_year.financial_year_end,
+    )
+    charity_financial_year.task_id = task_id
+    charity_financial_year.save()
+    return JsonResponse({"task_id": task_id})
+
+
+def task_get_status(request, task_id):
+    task = Task.get_task(task_id)
+    return JsonResponse({"task": task})
+
+
+def get_record(record: CharityFinancialYear, request):
+    documents = list(record.documents.all())
+    tags = []
+    if request.POST.get("tags"):
+        request_tags = request.POST.get("tags").split(",")
+        for tag in request_tags:
+            tag_object, _ = Tag.objects.get_or_create(name=tag)
+            tags.append(tag_object)
+            for doc in documents:
+                doc.tags.add(tag_object)
+                doc.save()
+
+    if request.POST.get("action") == "Fetch Documents":
+        if not documents:
+            task_id = async_task(
+                fetch_documents_for_charity,
+                record.charity.org_id,
+                record.financial_year_end,
+                tags=tags,
+            )
+            print("Starting task", task_id)
+            record.task_id = task_id
+            record.save()
+
+    return {
+        "org_id": record.charity.org_id,
+        "fyend": record.financial_year_end,
+        "status": get_status(record, documents),
+        "error": None,
+        "charity": record.charity,
+        "fy": record,
+        "documents": documents,
+    }
+
+
+def get_status(record: CharityFinancialYear, documents):
+
+    # record has at least one document
+    if len(documents) > 0:
+        return "Document available"
+
+    if record.task_id:
+        task = Task.get_task(record.task_id)
+        if not task:
+            return "Document being fetched"
+        if not task.success:
+            return "Document fetch failed"
+        return "Document available"
+
+    return "Available to fetch"
+
+
+def bulk_load_list(request):
+
+    charity_list = io.StringIO(request.POST.get("list"))
+    source = "textarea"
+    reader = csv.reader(charity_list)
+    default_fye = "latest"
+    records = []
+    for row in reader:
+        fyend = default_fye
+        if len(row) == 2:
+            org_id = row[0]
+            if row[1]:
+                fyend = row[1]
+        else:
+            org_id = row[0]
+        try:
+            charity = Charity.objects.get(org_id=org_id)
+        except Charity.DoesNotExist:
+            records.append(
+                {
+                    "org_id": org_id,
+                    "fyend": fyend,
+                    "error": "Charity not found",
+                    "status": "Error",
+                    "charity": None,
+                    "fy": None,
+                    "documents": None,
+                }
+            )
+            continue
+        if fyend == "all":
+            records.extend(
+                [get_record(fy, request) for fy in charity.financial_years.all()]
+            )
+        elif fyend == "latest":
+            fy = charity.financial_years.order_by("-financial_year_end").first()
+            records.append(get_record(fy, request))
+        else:
+            fy = charity.financial_years.filter(financial_year_end=fyend).first()
+            records.append(get_record(fy, request))
+
+    return render(
+        request,
+        "bulk_load_list.html.j2",
+        {
+            "records": records,
+            "source": source,
+        },
+    )
+
+
+def bulk_record_status(request, fy_id):
+    fy = get_object_or_404(CharityFinancialYear, id=fy_id)
+    return render(
+        request,
+        "_record_status.html.j2",
+        {"fy": get_record(fy, request)},
     )

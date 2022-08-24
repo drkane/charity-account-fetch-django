@@ -1,0 +1,18 @@
+{% for doc in fy.documents %}
+{% if loop.first %}<div class="bg-green white pa2"><ul class="list ma0 pa0">{% endif %}
+    <li class="dib">
+        <a href='{{url_for("doc.doc_get", id=doc.id)}}' class="link white underline-hover">{{ fy.status }}</a>
+        {% for tag in doc.tags.all() %}
+        <span class="pv1 ph2 br-pill bg-gray white f7 mr2 mb2">{{ tag }}</span>
+        {% endfor %}
+    </li>
+{% if loop.last %}</ul></div>{% endif %}
+{% else %}
+<div class="pa2" hx-get="/bulk/record_status/{{ fy.fy.id }}"
+    hx-trigger="load delay:2s"
+    hx-swap="outerHTML"
+    id="record-status-{{ fy.fy.id }}"
+    hx-target="#record-status-{{ fy.fy.id }}">
+{{ fy.status }}
+</div>
+{% endfor %}

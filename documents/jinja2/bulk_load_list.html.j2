@@ -1,0 +1,46 @@
+{% set input_style = 'f6 f5-l input-reset ba bw1 b--black-20 db cf near-black bg-white pa2 lh-solid w5 br2-ns' %}
+{% set button_style = 'f6 f5-l button-reset fl pa3 base-font no-underline tc bn bg-animate bg-yellow dim near-black pointer br2-ns' %}
+
+<h3 class="ma0 pa0 mt4 w-100">Preview</h3>
+<p class="w-100">
+    <span class="b">File source: </span>
+    <span id='file-source' class="code">{{ source }}</span>
+    <span id='file-values'>{{ records|length }} records to fetch</span>
+</p>
+<table id='' class="table collapse w-100 f5">
+    <thead>
+        <tr>
+            <th class="pa2 bb b--light-gray bw1 tl">Charity number</th>
+            <th class="pa2 bb b--light-gray bw1 tl">Financial year end</th>
+            <th class="pa2 bb b--light-gray bw1 tl">Charity name</th>
+            <th class="pa2 bb b--light-gray bw1 tr">Income</th>
+            <th class="pa2 bb b--light-gray bw1 tr">Spending</th>
+            <th class="pa2 bb b--light-gray bw1 tl">Status</th>
+        </tr>
+    </thead>
+    <tbody id='preview-data'>
+        {% for fy in records %}
+        <tr>
+            <td class="pa2 tl">{{ fy.org_id }}</td>
+            <td class="pa2 tl">{{ fy.fyend }}</td>
+            {% if fy.error %}
+            <td class="pa2 tl red" colspan="4">{{ fy.error }}</td>
+            {% else %}
+            <td class="pa2 tl">
+                <a href="{{ url_for('charity.charity_get', regno=fy.charity.org_id) }}">{{ fy.charity.name|to_titlecase }}</a>
+            </td>
+            <td class="pa2 tr">{{ "£{:,.0f}".format(fy.fy.income) }}</td>
+            <td class="pa2 tr">{{ "£{:,.0f}".format(fy.fy.expenditure) }}</td>
+            <td class="tl">
+                {% include '_record_status.html.j2' %}
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div class="w-100">
+    <label class="db w-100 mt4 b" for="tag-input">Add one or more tags (separated by commas) to these documents</label>
+    <input class="mt2 {{ input_style }}" type="text" id="tag-input" name="tags">
+    <input class="mt4 {{ button_style }}" type='submit' id='upload-docs' name="action" value='Fetch Documents' />
+</div>

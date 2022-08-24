@@ -23,7 +23,9 @@ class CharityFetchError(Exception):
     pass
 
 
-def fetch_documents_for_charity(org_id, financial_year_end=None, session=None):
+def fetch_documents_for_charity(
+    org_id, financial_year_end=None, session=None, tags=None
+):
 
     if session is None:
         session = HTMLSession()
@@ -48,18 +50,23 @@ def fetch_documents_for_charity(org_id, financial_year_end=None, session=None):
     ]
 
     for account in accounts:
-        document = fetch_account(account, financial_years[account.fyend], session)
+        document = fetch_account(
+            account, financial_years[account.fyend], session, tags=tags
+        )
 
     return None
 
 
-def fetch_account(account, financial_year, session=None):
+def fetch_account(account, financial_year, session=None, tags=None):
     if session is None:
         session = HTMLSession()
 
     # check whether document already exists
     document = Document.objects.filter(financial_year=financial_year).first()
     if document is not None:
+        if tags:
+            for tag in tags:
+                document.tags.add(tag)
         print("Document already exists for {} {}".format(account.regno, account.fyend))
         return document
 
@@ -69,16 +76,19 @@ def fetch_account(account, financial_year, session=None):
     filedata = convert_file(pdf_file)
 
     # OCR the PDF if necessary
-    try:
-        buffer = io.BytesIO()
-        ocrmypdf.ocr(io.BytesIO(r.content), buffer)
-        print("OCRing PDF")
-        pdf_file = ContentFile(
-            buffer.getvalue(), name=f"{account.regno}-{account.fyend}.pdf"
-        )
-        filedata = convert_file(pdf_file)
-    except ocrmypdf.exceptions.PriorOcrFoundError:
-        print("PDF already OCR'd")
+    if filedata["content_length"] < 4000:
+        try:
+            buffer = io.BytesIO()
+            ocrmypdf.ocr(io.BytesIO(r.content), buffer)
+            print("OCRing PDF")
+            pdf_file = ContentFile(
+                buffer.getvalue(), name=f"{account.regno}-{account.fyend}.pdf"
+            )
+            filedata = convert_file(pdf_file)
+        except ocrmypdf.exceptions.PriorOcrFoundError:
+            print("PDF already OCR'd")
+        except ocrmypdf.exceptions.EncryptedPdfError:
+            print("PDF is encrypted")
 
     # Save the PDF to the database
     document = Document(
@@ -91,6 +101,9 @@ def fetch_account(account, financial_year, session=None):
         language=filedata["language"],
     )
     document.save()
+    if tags:
+        for tag in tags:
+            document.tags.add(tag)
     print("Document created for {} {}".format(account.regno, account.fyend))
     return document
 

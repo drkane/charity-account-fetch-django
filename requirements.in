@@ -18,3 +18,4 @@ python-dotenv
 requests-html
 python-dateutil
 ocrmypdf
+django-htmx

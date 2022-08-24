@@ -1,0 +1,38 @@
+{% extends "base.html.j2" %}
+
+{% set input_style = 'f6 f5-l input-reset ba bw1 b--black-20 db cf near-black bg-white pa2 lh-solid w5 br2-ns' %}
+{% set button_style = 'f6 f5-l button-reset fl pa3 base-font no-underline tc bn bg-animate bg-yellow dim near-black pointer br2-ns' %}
+
+{% block content %}
+    <h2>Upload a list of documents</h2>
+    <div id='bulk-upload'>
+        <div class="flex flex-wrap" id=''>
+            <div class="w-100">
+                <p class="ma0 pa0 w-100 measure">
+                    Paste a list of charity numbers to fetch documents for.
+                    You can also include a financial year end, otherwise the most recent account will be fetched. 
+                </p>
+                <p class="pa0 w-100 measure">
+                    The charity number should be in the first column, and (if present) the
+                    financial year end should be in the second column in format <code>YYYY-MM-DD</code>.
+                </p>
+            </div>
+        </div>
+        <form hx-post="/bulk/list_charities" hx-swap="innerHTML" hx-target="#stage-2">
+            <div class="flex flex-wrap" id='stage-1'>
+                <div class="w-100 w-50-l">
+                    <label class="db w-100 mt4 b" for="list-input">Paste a list of charities: </label>
+                    <textarea class="{{ input_style }} w-100 data-input" rows="8" id="list-input" name='list' placeholder='123456,2020-03-31' v-model="textAreaRecords"></textarea>
+                    <button class="mt2 {{ button_style }} b" type="submit">Prepare records</button>
+                </div>
+            </div>
+            <div class="flex flex-wrap" id="stage-2">
+            </div>
+        </form>
+    </div>
+{% endblock content %}
+
+{% block bodyscripts %}
+<script src="{{ url_for('static', filename='js/htmx.min.js') }}"></script>
+{{ django_htmx_script() }}
+{% endblock %}

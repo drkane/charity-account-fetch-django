@@ -166,6 +166,7 @@ class DocumentAdmin(admin.ModelAdmin):
         "financial_year_end",
         "pages",
         "content_type",
+        "content_length",
         "language",
     )
     list_display_links = (

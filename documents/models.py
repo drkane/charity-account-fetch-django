@@ -57,6 +57,13 @@ class CharityFinancialYear(models.Model):
     income = models.BigIntegerField(blank=True, null=True)
     expenditure = models.BigIntegerField(blank=True, null=True)
 
+    task_id = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="Task ID if the document is currently being fetched",
+    )
+
     class Meta:
         unique_together = (
             "charity",

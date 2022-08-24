@@ -3,8 +3,10 @@ import urllib.parse
 from datetime import date, datetime
 
 from django.shortcuts import resolve_url
+from django.templatetags.static import static
 from django.urls import NoReverseMatch, reverse
 from django.utils.text import slugify
+from django_htmx.jinja import django_htmx_script
 
 from ccew.utils import to_titlecase
 from jinja2 import Environment
@@ -13,6 +15,9 @@ from jinja2 import Environment
 def url_for(
     endpoint, *, _anchor=None, _method=None, _scheme=None, _external=None, **values
 ):
+    if endpoint == "static":
+        return static(values["filename"])
+
     if not values:
         return resolve_url(endpoint)
     url = None
@@ -82,6 +87,7 @@ def environment(**options):
             "url_for": url_for,
             "get_flashed_messages": get_flashed_messages,
             "now": get_now(),
+            "django_htmx_script": django_htmx_script,
         }
     )
     env.filters.update(
