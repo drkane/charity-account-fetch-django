@@ -1,11 +1,13 @@
-from datetime import datetime, date
 import re
 import urllib.parse
-from jinja2 import Environment
-from django.urls import reverse, NoReverseMatch
+from datetime import date, datetime
+
 from django.shortcuts import resolve_url
+from django.urls import NoReverseMatch, reverse
 from django.utils.text import slugify
+
 from ccew.utils import to_titlecase
+from jinja2 import Environment
 
 
 def url_for(

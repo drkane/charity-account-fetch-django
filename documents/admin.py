@@ -1,6 +1,7 @@
 from django.contrib import admin
-from django.utils.translation import gettext_lazy as _
 from django.db.models import Count
+from django.utils.translation import gettext_lazy as _
+
 from documents.models import Charity, CharityFinancialYear, Document, Tag
 
 
@@ -33,6 +34,12 @@ class CharityFinancialYearAdminList(admin.TabularInline):
         "expenditure",
     )
     extra = 0
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 class DocumentAdminList(admin.StackedInline):
@@ -70,6 +77,12 @@ class CharityAdmin(admin.ModelAdmin):
         "date_removed",
         "source",
     )
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 class HasDocumentsListFilter(admin.SimpleListFilter):
@@ -131,6 +144,12 @@ class CharityFinancialYearAdmin(admin.ModelAdmin):
 
     def documents(self, record):
         return record.documents.count()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Document)

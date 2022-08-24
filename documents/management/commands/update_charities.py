@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.db import connection, transaction
 
-
 UPDATE_SQL = {
     "Deleting existing CCEW records": """
             delete from documents_charity

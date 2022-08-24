@@ -1,19 +1,18 @@
-from django.shortcuts import render, get_object_or_404, resolve_url
-from django.http import FileResponse
-from django.views.decorators.clickjacking import xframe_options_sameorigin
-import markupsafe
 import csv
-from django.http import HttpResponse
-from django.utils.text import slugify
-from django.core.paginator import Paginator
+
+import markupsafe
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from documents.documents import (
-    DocumentDocument as DocumentModel,
-    ElasticsearchPaginator,
-)
-from documents.models import Document, Charity
-from elasticsearch_dsl.query import SimpleQueryString, Terms
+from django.core.paginator import Paginator
+from django.http import FileResponse, HttpResponse
+from django.shortcuts import get_object_or_404, render, resolve_url
+from django.utils.text import slugify
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from elasticsearch_dsl import A
+from elasticsearch_dsl.query import SimpleQueryString, Terms
+
+from documents.documents import DocumentDocument as DocumentModel
+from documents.documents import ElasticsearchPaginator
+from documents.models import Charity, Document
 
 
 def index(request):

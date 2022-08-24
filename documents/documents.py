@@ -1,10 +1,12 @@
 import datetime
-from django_elasticsearch_dsl import Document, fields
-from django_elasticsearch_dsl.registries import registry
-from .models import Document as DocumentModel
+from math import ceil
+
 from django.core.paginator import EmptyPage, Page, PageNotAnInteger, Paginator
 from django.utils.translation import gettext_lazy as _
-from math import ceil
+from django_elasticsearch_dsl import Document, fields
+from django_elasticsearch_dsl.registries import registry
+
+from .models import Document as DocumentModel
 
 
 @registry.register_document

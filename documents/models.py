@@ -1,8 +1,8 @@
 import datetime
 
+import pdfplumber
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-import pdfplumber
 
 from ccew.utils import to_titlecase
 
