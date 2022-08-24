@@ -29,8 +29,8 @@
             <td class="pa2 tl">
                 <a href="{{ url_for('charity.charity_get', regno=fy.charity.org_id) }}">{{ fy.charity.name|to_titlecase }}</a>
             </td>
-            <td class="pa2 tr">{{ "£{:,.0f}".format(fy.fy.income) }}</td>
-            <td class="pa2 tr">{{ "£{:,.0f}".format(fy.fy.expenditure) }}</td>
+            <td class="pa2 tr">{% if fy.fy.income %}{{ "£{:,.0f}".format(fy.fy.income) }}{% endif %}</td>
+            <td class="pa2 tr">{% if fy.fy.income %}{{ "£{:,.0f}".format(fy.fy.expenditure) }}{% endif %}</td>
             <td class="tl">
                 {% include '_record_status.html.j2' %}
             </td>
