@@ -6,5 +6,23 @@
         "worker": {
             "quantity": 2
         }
-    }
+    },
+    "cron": [
+        {
+            "command": "python ./manage.py import_oscr",
+            "schedule": "46 20 * * 5"
+        },
+        {
+            "command": "python ./manage.py import_ccew",
+            "schedule": "16 2 * * 6"
+        },
+        {
+            "command": "python ./manage.py import_ccni",
+            "schedule": "46 2 * * 6"
+        },
+        {
+            "command": "python ./manage.py update_charities",
+            "schedule": "56 2 * * 6"
+        }
+    ]
 }
