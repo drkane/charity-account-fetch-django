@@ -29,7 +29,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         tags = list(
             Tag.objects.get_or_create(
-                slug=Tag._meta.get_field('slug').slugify(tag), defaults=dict(name=tag)
+                slug=Tag._meta.get_field("slug").slugify(tag), defaults=dict(name=tag)
             )[0]
             for tag in options["tags"]
         )
@@ -39,7 +39,11 @@ class Command(BaseCommand):
                 if not filename.endswith(".pdf"):
                     continue
 
-                org_id, financial_year_end = filename[:-4].split("_")
+                try:
+                    org_id, financial_year_end = filename[:-4].split("_")
+                except ValueError:
+                    self.stdout.write(self.style.ERROR(f"could not parse {filename}"))
+                    continue
 
                 financial_year_end = datetime.datetime.strptime(
                     financial_year_end, "%Y%m%d"
