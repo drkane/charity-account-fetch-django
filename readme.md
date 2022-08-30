@@ -18,7 +18,7 @@ dokku elasticsearch:link account-fetch-es dj-account-fetch
 # letsencrypt
 sudo dokku plugin:install https://github.com/dokku/dokku-letsencrypt.git
 dokku config:set --no-restart ftc DOKKU_LETSENCRYPT_EMAIL=your@email.tld
-dokku letsencrypt dj-account-fetch
+dokku letsencrypt:enable dj-account-fetch
 dokku letsencrypt:cron-job --add
 
 # set secret key
