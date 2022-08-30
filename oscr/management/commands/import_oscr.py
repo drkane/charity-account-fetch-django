@@ -1,16 +1,17 @@
-from operator import index
-from django.core.management.base import BaseCommand
-import requests_cache
-from datetime import datetime, timedelta, date
 import csv
 import io
-from django.utils.text import slugify
-from django.db import connection, transaction
-from oscr.models import Charity, CharityFinancialYear
-import psycopg2.extras
-import zipfile
 import re
+import zipfile
+from datetime import date, datetime, timedelta
+from operator import index
 
+import psycopg2.extras
+import requests_cache
+from django.core.management.base import BaseCommand
+from django.db import connection, transaction
+from django.utils.text import slugify
+
+from oscr.models import Charity, CharityFinancialYear
 
 fy_fields = list(f.name for f in CharityFinancialYear._meta.fields if f.name != "id")
 char_fields = list(f.name for f in Charity._meta.fields if f.name != "id")
