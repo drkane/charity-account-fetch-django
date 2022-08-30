@@ -68,7 +68,9 @@ def fetch_account(account, financial_year, session=None, tags=None):
         if tags:
             for tag in tags:
                 if isinstance(tag, str):
-                    tag = Tag.objects.get_or_create(slug=Tag.slug.slugify(tag))
+                    tag = Tag.objects.get_or_create(
+                        slug=Tag._meta.get_field("slug").slugify(tag)
+                    )
                 document.tags.add(tag)
         print("Document already exists for {} {}".format(account.regno, account.fyend))
         return document
@@ -109,7 +111,9 @@ def fetch_account(account, financial_year, session=None, tags=None):
     if tags:
         for tag in tags:
             if isinstance(tag, str):
-                tag = Tag.objects.get_or_create(slug=Tag.slug.slugify(tag))
+                tag = Tag.objects.get_or_create(
+                    slug=Tag._meta.get_field("slug").slugify(tag)
+                )
             document.tags.add(tag)
     print("Document created for {} {}".format(account.regno, account.fyend))
     return document
@@ -128,7 +132,9 @@ def document_from_file(org_id, financial_year_end, filepath, tags=None):
         if tags:
             for tag in tags:
                 if isinstance(tag, str):
-                    tag = Tag.objects.get_or_create(slug=Tag.slug.slugify(tag))
+                    tag = Tag.objects.get_or_create(
+                        slug=Tag._meta.get_field("slug").slugify(tag)
+                    )
                 document.tags.add(tag)
         print(
             "Document already exists for {} {}".format(
@@ -177,7 +183,9 @@ def document_from_file(org_id, financial_year_end, filepath, tags=None):
     if tags:
         for tag in tags:
             if isinstance(tag, str):
-                tag = Tag.objects.get_or_create(slug=Tag.slug.slugify(tag))
+                tag = Tag.objects.get_or_create(
+                    slug=Tag._meta.get_field("slug").slugify(tag)
+                )
             document.tags.add(tag)
     print("Document created for {} {}".format(org_id, financial_year_end))
     return document

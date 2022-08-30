@@ -29,7 +29,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         tags = list(
             Tag.objects.get_or_create(
-                slug=Tag.slug.slugify(tag), defaults=dict(name=tag)
+                slug=Tag._meta.get_field('slug').slugify(tag), defaults=dict(name=tag)
             )[0]
             for tag in options["tags"]
         )
