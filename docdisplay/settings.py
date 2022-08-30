@@ -108,7 +108,7 @@ DATABASES = {
 
 # Elasticsearch
 ELASTICSEARCH_DSL = {
-    "default": {"hosts": os.environ.get("ELASTICSEARCH_HOST")},
+    "default": {"hosts": os.environ.get("ELASTICSEARCH_URL")},
 }
 
 # Django Q
