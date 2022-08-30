@@ -1,3 +1,4 @@
+import argparse
 import datetime
 import os
 
@@ -25,6 +26,7 @@ class Command(BaseCommand):
             nargs="+",
             default=[],
         )
+        parser.add_argument("--test", action=argparse.BooleanOptionalAction)
 
     def handle(self, *args, **options):
         tags = list(
@@ -36,18 +38,20 @@ class Command(BaseCommand):
         files_found = 0
         for dirpath, dirnames, filenames in os.walk(options["directory"]):
             for filename in filenames:
+                if options["test"] and files_found > 10:
+                    break
                 if not filename.endswith(".pdf"):
                     continue
 
                 try:
                     org_id, financial_year_end = filename[:-4].split("_")
+                    financial_year_end = datetime.datetime.strptime(
+                        financial_year_end, "%Y%m%d"
+                    ).date()
                 except ValueError:
                     self.stdout.write(self.style.ERROR(f"could not parse {filename}"))
                     continue
 
-                financial_year_end = datetime.datetime.strptime(
-                    financial_year_end, "%Y%m%d"
-                ).date()
                 _ = async_task(
                     document_from_file,
                     org_id,
@@ -56,4 +60,5 @@ class Command(BaseCommand):
                     tags=tags,
                 )
                 files_found += 1
+
         self.stdout.write(self.style.SUCCESS(f"Found {files_found:.0f} files"))
