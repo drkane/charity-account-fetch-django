@@ -36,6 +36,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="tag",
             name="slug",
-            field=autoslug.fields.AutoSlugField(editable=False, populate_from="name"),
+            field=autoslug.fields.AutoSlugField(
+                editable=False, populate_from="name", unique=True
+            ),
         ),
     ]

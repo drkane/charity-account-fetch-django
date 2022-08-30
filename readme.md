@@ -25,6 +25,9 @@ dokku letsencrypt:cron-job --add
 # To generate use:
 # `python -c "import secrets; print(secrets.token_urlsafe())"`
 dokku config:set --no-restart dj-account-fetch SECRET_KEY='<insert secret key>'
+
+# setup hosts
+dokku config:set dj-account-fetch --no-restart DEBUG=false ALLOWED_HOSTS="hostname.example.com"
 ```
 
 
