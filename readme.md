@@ -30,5 +30,5 @@ dokku config:set --no-restart dj-account-fetch SECRET_KEY='<insert secret key>'
 
 ```
 git remote add dokku dokku@SERVER_HOST:ftc
-git push dokku master
+git push dokku main
 ```
