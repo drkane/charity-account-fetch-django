@@ -153,15 +153,14 @@ def document_from_file(org_id, financial_year_end, filepath, tags=None):
     # OCR the PDF if necessary
     if filedata["content_length"] < 4000:
         try:
-            with open(filepath) as original_file:
-                buffer = io.BytesIO()
-                ocrmypdf.ocr(original_file, buffer)
-                print("OCRing PDF")
-                pdf_file = ContentFile(
-                    buffer.getvalue(),
-                    name=f"{charity.org_id}-{financial_year.financial_year_end}.pdf",
-                )
-                filedata = convert_file(pdf_file)
+            buffer = io.BytesIO()
+            ocrmypdf.ocr(filepath, buffer)
+            print("OCRing PDF")
+            pdf_file = ContentFile(
+                buffer.getvalue(),
+                name=f"{charity.org_id}-{financial_year.financial_year_end}.pdf",
+            )
+            filedata = convert_file(pdf_file)
         except ocrmypdf.exceptions.PriorOcrFoundError:
             print("PDF already OCR'd")
         except ocrmypdf.exceptions.EncryptedPdfError:
