@@ -84,6 +84,8 @@ fake-useragent==0.1.11
     # via requests-html
 faker==14.1.0
     # via -r requirements.in
+gunicorn==20.1.0
+    # via -r requirements.in
 humanfriendly==10.0
     # via coloredlogs
 idna==3.3
@@ -219,3 +221,6 @@ websockets==10.3
     # via pyppeteer
 zipp==3.8.1
     # via importlib-metadata
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

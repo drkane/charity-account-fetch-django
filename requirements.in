@@ -20,3 +20,4 @@ python-dateutil
 ocrmypdf
 django-htmx
 django-autoslug
+gunicorn

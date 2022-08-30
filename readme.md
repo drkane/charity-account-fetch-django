@@ -23,7 +23,7 @@ dokku letsencrypt:cron-job --add
 
 # set secret key
 # To generate use:
-# `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`
+# `python -c "import secrets; print(secrets.token_urlsafe())"`
 dokku config:set --no-restart dj-account-fetch SECRET_KEY='<insert secret key>'
 ```
 
