@@ -37,6 +37,11 @@ dokku run dj-account-fetch python ./manage.py update_charities
 
 # create superuser account
 dokku run dj-account-fetch python manage.py createsuperuser
+
+# setup account directory
+dokku storage:ensure-directory dj-account-fetch
+dokku storage:mount dj-account-fetch /var/lib/dokku/data/storage/dj-account-fetch:/app/storage
+dokku config:set dj-account-fetch --no-restart MEDIA_ROOT=/app/storage/media/
 ```
 
 
