@@ -28,19 +28,13 @@ class ActiveCharityListFilter(admin.SimpleListFilter):
 class CharityFinancialYearAdminList(admin.TabularInline):
     model = CharityFinancialYear
     readonly_fields = (
-        "financial_year_end",
-        "document_due",
-        "document_submitted",
-        "income",
-        "expenditure",
+        # "financial_year_end",
+        # "document_due",
+        # "document_submitted",
+        # "income",
+        # "expenditure",
     )
     extra = 0
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request, obj=None):
-        return False
 
 
 class DocumentAdminList(admin.StackedInline):
@@ -72,21 +66,15 @@ class CharityAdmin(admin.ModelAdmin):
         CharityFinancialYearAdminList,
     ]
     readonly_fields = (
-        "name",
-        "org_id",
-        "date_registered",
-        "date_removed",
-        "source",
+        # "name",
+        # "org_id",
+        # "date_registered",
+        # "date_removed",
+        # "source",
     )
 
     def charity_name(self, instance):
         return to_titlecase(instance.name)
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request, obj=None):
-        return False
 
 
 class HasDocumentsListFilter(admin.SimpleListFilter):
@@ -131,14 +119,7 @@ class CharityFinancialYearAdmin(admin.ModelAdmin):
     inlines = [
         DocumentAdminList,
     ]
-    readonly_fields = (
-        "charity",
-        "financial_year_end",
-        "document_due",
-        "document_submitted",
-        "income",
-        "expenditure",
-    )
+    readonly_fields = ("task_id",)
 
     def charity_name(self, record):
         return to_titlecase(record.charity.name)
@@ -148,12 +129,6 @@ class CharityFinancialYearAdmin(admin.ModelAdmin):
 
     def documents(self, record):
         return record.documents.count()
-
-    def has_delete_permission(self, request, obj=None):
-        return False
-
-    def has_add_permission(self, request, obj=None):
-        return False
 
 
 @admin.register(Document)

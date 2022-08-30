@@ -7,7 +7,7 @@ UPDATE_SQL = {
             where lower(source) = 'ccew'
             """,
     "Insert updated CCEW records": """
-            insert into documents_charity 
+            insert into documents_charity
             select 'GB-CHC-' || registered_charity_number as org_id,
                 'CCEW' as source,
                 "charity_name" as name,
@@ -16,7 +16,7 @@ UPDATE_SQL = {
             from ccew_charity
             where linked_charity_number = 0
     """,
-    "Insert financial records": """
+    "Insert CCEW financial records": """
         insert into documents_charityfinancialyear (
         financial_year_end, document_due, document_submitted, income, expenditure, charity_id)
         select distinct on (registered_charity_number, fin_period_end_date)
@@ -26,13 +26,67 @@ UPDATE_SQL = {
             total_gross_income as income,
             total_gross_expenditure as expenditure,
             'GB-CHC-' || registered_charity_number as charity_id
-        from ccew_charityannualreturnhistory cc 
+        from ccew_charityannualreturnhistory cc
         WHERE true
         ON CONFLICT(charity_id, financial_year_end) DO UPDATE
         SET document_due = excluded.document_due,
             document_submitted = excluded.document_submitted,
             income = excluded.income,
             expenditure = excluded.expenditure
+    """,
+    "Deleting existing CCNI records": """
+            delete from documents_charity
+            where lower(source) = 'ccni'
+            """,
+    "Insert updated CCNI records": """
+            insert into documents_charity
+            select 'GB-NIC-' || reg_charity_number as org_id,
+                'CCNI' as source,
+                "charity_name" as name,
+                date_registered as date_registered,
+                null as date_removed
+            from ccni_charity
+            where sub_charity_number = 0
+    """,
+    "Insert CCNI financial records": """
+        insert into documents_charityfinancialyear (
+        financial_year_end, income, expenditure, charity_id)
+        select date_for_financial_year_ending as financial_year_end,
+            total_income as income,
+            total_spending as expenditure,
+            'GB-NIC-' || reg_charity_number as charity_id
+        from ccni_charity
+        where total_income <> 0 or total_spending <> 0
+        ON CONFLICT(charity_id, financial_year_end) DO UPDATE
+        SET income = excluded.income,
+            expenditure = excluded.expenditure
+    """,
+    "Deleting existing OSCR records": """
+            delete from documents_charity
+            where lower(source) = 'oscr'
+            """,
+    "Insert updated OSCR records": """
+            insert into documents_charity 
+            select 'GB-SC-' || charity_number as org_id,
+                'OSCR' as source,
+                "charity_name" as name,
+                registered_date as date_registered,
+                ceased_date as date_removed
+            from oscr_charity
+    """,
+    "Insert OSCR financial records": """
+        insert into documents_charityfinancialyear (
+        financial_year_end, document_submitted, income, expenditure, charity_id)
+        select year_end as financial_year_end,
+            date_annual_return_received as document_submitted,
+            most_recent_year_income as income,
+            most_recent_year_expenditure as expenditure,
+            'GB-SC-' || charity_number as charity_id
+        from oscr_charityfinancialyear
+        ON CONFLICT(charity_id, financial_year_end) DO UPDATE
+        SET income = excluded.income,
+            expenditure = excluded.expenditure,
+            document_submitted = excluded.document_submitted
     """,
 }
 

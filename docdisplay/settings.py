@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "django_htmx",
     "ccew",
+    "ccni",
+    "oscr",
     "documents",
     "django_q",
     "django_elasticsearch_dsl",

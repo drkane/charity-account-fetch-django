@@ -1,6 +1,7 @@
-from documents.documents import DocumentDocument as DocumentModel
-from elasticsearch_dsl import A
 from django.shortcuts import render
+from elasticsearch_dsl import A
+
+from documents.documents import DocumentDocument as DocumentModel
 
 
 def index(request):

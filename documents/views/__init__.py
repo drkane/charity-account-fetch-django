@@ -1,5 +1,1 @@
-from . import bulk
-from . import charity
-from . import doc
-from . import main
-from . import search
+from . import bulk, charity, doc, main, search

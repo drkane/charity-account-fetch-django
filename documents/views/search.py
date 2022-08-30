@@ -1,13 +1,13 @@
 import csv
 
-from documents.documents import DocumentDocument as DocumentModel
-from django.shortcuts import render, resolve_url
-
-from documents.documents import ElasticsearchPaginator
-from elasticsearch_dsl import A
 from django.http import HttpResponse
+from django.shortcuts import render, resolve_url
 from django.utils.text import slugify
+from elasticsearch_dsl import A
 from elasticsearch_dsl.query import SimpleQueryString, Terms
+
+from documents.documents import DocumentDocument as DocumentModel
+from documents.documents import ElasticsearchPaginator
 
 
 def search(request, filetype="html"):

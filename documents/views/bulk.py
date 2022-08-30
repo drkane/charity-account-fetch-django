@@ -1,7 +1,7 @@
 import csv
 import io
 
-from django.contrib.auth.decorators import permission_required, login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import get_object_or_404, render
 from django_q.tasks import Task, async_task
 

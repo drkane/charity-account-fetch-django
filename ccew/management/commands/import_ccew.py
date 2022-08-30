@@ -5,10 +5,9 @@ import zipfile
 from datetime import datetime, timedelta
 
 import psycopg2.extras
-import requests
 import requests_cache
 import tqdm
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.core.management.color import no_style
 from django.db import connection, transaction
 from django.db.models.fields import BooleanField, DateField

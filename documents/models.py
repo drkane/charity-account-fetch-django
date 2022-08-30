@@ -20,12 +20,15 @@ class Regulators(models.TextChoices):
     CCEW = "CCEW", _("Charity Commission for England and Wales")
     OSCR = "OSCR", _("Office of the Scottish Charity Regulator")
     CCNI = "CCNI", _("Charity Commission for Northern Ireland")
+    MAN = "MAN", _("Manually added charity")
 
 
 class Charity(models.Model):
 
     org_id = models.CharField(max_length=50, primary_key=True)
-    source = models.CharField(max_length=4, choices=Regulators.choices, null=True)
+    source = models.CharField(
+        max_length=4, choices=Regulators.choices, default=Regulators.MAN
+    )
     name = models.CharField(max_length=255, null=True, db_index=True)
     date_registered = models.DateField(null=True)
     date_removed = models.DateField(null=True)
@@ -52,7 +55,7 @@ class CharityFinancialYear(models.Model):
         Charity, on_delete=models.CASCADE, related_name="financial_years"
     )
     financial_year_end = models.DateField(db_index=True)
-    document_due = models.DateField()
+    document_due = models.DateField(blank=True, null=True)
     document_submitted = models.DateField(blank=True, null=True)
     income = models.BigIntegerField(blank=True, null=True)
     expenditure = models.BigIntegerField(blank=True, null=True)
