@@ -6,7 +6,8 @@ from collections import namedtuple
 import dateutil.parser
 import ocrmypdf
 import requests_cache
-from django.core.files.base import ContentFile
+from django.core.files.base import ContentFile, File
+from django.utils import timezone
 from requests_html import HTMLSession
 
 from ccew.models import Charity as CCEWCharity
@@ -66,6 +67,8 @@ def fetch_account(account, financial_year, session=None, tags=None):
     if document is not None:
         if tags:
             for tag in tags:
+                if isinstance(tag, str):
+                    tag = Tag.objects.get_or_create(slug=Tag.slug.slugify(tag))
                 document.tags.add(tag)
         print("Document already exists for {} {}".format(account.regno, account.fyend))
         return document
@@ -99,12 +102,84 @@ def fetch_account(account, financial_year, session=None, tags=None):
         pages=filedata["pages"],
         content_type=filedata["content_type"],
         language=filedata["language"],
+        created_at=timezone.now(),
+        updated_at=timezone.now(),
     )
     document.save()
     if tags:
         for tag in tags:
+            if isinstance(tag, str):
+                tag = Tag.objects.get_or_create(slug=Tag.slug.slugify(tag))
             document.tags.add(tag)
     print("Document created for {} {}".format(account.regno, account.fyend))
+    return document
+
+
+def document_from_file(org_id, financial_year_end, filepath, tags=None):
+    charity = Charity.objects.get(org_id=org_id)
+    financial_year, _ = CharityFinancialYear.objects.get_or_create(
+        charity=charity,
+        financial_year_end=financial_year_end,
+    )
+
+    # check whether document already exists
+    document = Document.objects.filter(financial_year=financial_year).first()
+    if document is not None:
+        if tags:
+            for tag in tags:
+                if isinstance(tag, str):
+                    tag = Tag.objects.get_or_create(slug=Tag.slug.slugify(tag))
+                document.tags.add(tag)
+        print(
+            "Document already exists for {} {}".format(
+                charity.org_id, financial_year.financial_year_end
+            )
+        )
+        return document
+
+    # Get the PDF
+    pdf_file = ContentFile(
+        open(filepath, "rb").read(),
+        name=f"{charity.org_id}-{financial_year.financial_year_end}.pdf",
+    )
+    filedata = convert_file(pdf_file)
+
+    # OCR the PDF if necessary
+    if filedata["content_length"] < 4000:
+        try:
+            with open(filepath) as original_file:
+                buffer = io.BytesIO()
+                ocrmypdf.ocr(original_file, buffer)
+                print("OCRing PDF")
+                pdf_file = ContentFile(
+                    buffer.getvalue(),
+                    name=f"{charity.org_id}-{financial_year.financial_year_end}.pdf",
+                )
+                filedata = convert_file(pdf_file)
+        except ocrmypdf.exceptions.PriorOcrFoundError:
+            print("PDF already OCR'd")
+        except ocrmypdf.exceptions.EncryptedPdfError:
+            print("PDF is encrypted")
+
+    # Save the PDF to the database
+    document = Document(
+        financial_year=financial_year,
+        file=pdf_file,
+        content=filedata["content"],
+        content_length=filedata["content_length"],
+        pages=filedata["pages"],
+        content_type=filedata["content_type"],
+        language=filedata["language"],
+        created_at=timezone.now(),
+        updated_at=timezone.now(),
+    )
+    document.save()
+    if tags:
+        for tag in tags:
+            if isinstance(tag, str):
+                tag = Tag.objects.get_or_create(slug=Tag.slug.slugify(tag))
+            document.tags.add(tag)
+    print("Document created for {} {}".format(org_id, financial_year_end))
     return document
 
 

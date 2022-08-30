@@ -134,7 +134,14 @@ class CharityFinancialYearAdmin(admin.ModelAdmin):
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     raw_id_fields = ("financial_year",)
-    readonly_fields = ("content", "content_length", "pages", "content_type", "language")
+    readonly_fields = (
+        "content",
+        "content_length",
+        "pages",
+        "content_type",
+        "language",
+        "created_at",
+    )
     list_display = (
         "charity_name",
         "charity_org_id",
@@ -143,6 +150,7 @@ class DocumentAdmin(admin.ModelAdmin):
         "content_type",
         "content_length",
         "language",
+        "created_at",
     )
     list_display_links = (
         "charity_name",
@@ -167,9 +175,11 @@ class DocumentAdmin(admin.ModelAdmin):
 class TagAdmin(admin.ModelAdmin):
     list_display = (
         "name",
+        "slug",
         "charities_count",
         "documents_count",
     )
+    readonly_fields = ("slug",)
 
     def charities_count(self, instance):
         return instance.charities.count()

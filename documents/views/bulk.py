@@ -21,7 +21,9 @@ def get_record(record: CharityFinancialYear, request):
     if request.POST.get("tags"):
         request_tags = request.POST.get("tags").split(",")
         for tag in request_tags:
-            tag_object, _ = Tag.objects.get_or_create(name=tag)
+            tag_object, _ = Tag.objects.get_or_create(
+                slug=Tag.slug.slugify(tag), defaults=dict(name=tag)
+            )
             tags.append(tag_object)
             for doc in documents:
                 doc.tags.add(tag_object)

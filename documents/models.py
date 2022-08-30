@@ -1,3 +1,4 @@
+from autoslug import AutoSlugField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -7,6 +8,7 @@ from documents.utils import convert_file
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, verbose_name=_("Tag name"))
+    slug = AutoSlugField(populate_from="name", unique=True)
 
     class Meta:
         verbose_name = _("tag")
@@ -32,6 +34,8 @@ class Charity(models.Model):
     name = models.CharField(max_length=255, null=True, db_index=True)
     date_registered = models.DateField(null=True)
     date_removed = models.DateField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     tags = models.ManyToManyField(Tag, blank=True, related_name="charities")
 
@@ -59,6 +63,8 @@ class CharityFinancialYear(models.Model):
     document_submitted = models.DateField(blank=True, null=True)
     income = models.BigIntegerField(blank=True, null=True)
     expenditure = models.BigIntegerField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     task_id = models.CharField(
         max_length=50,
@@ -102,6 +108,9 @@ class Document(models.Model):
     file = models.FileField(upload_to="data/documents", blank=True, null=True)
 
     tags = models.ManyToManyField(Tag, blank=True, related_name="documents")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
         if not self.content:

@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 from django_q.tasks import async_task
 
 from documents.fetch import fetch_documents_for_charity
+from documents.models import Tag
 
 
 def parse_financial_year_end(s):
@@ -23,11 +24,24 @@ class Command(BaseCommand):
             type=parse_financial_year_end,
             default="latest",
         )
+        parser.add_argument(
+            "--tags",
+            "-t",
+            nargs="+",
+            default=[],
+        )
 
     def handle(self, *args, **options):
+        tags = list(
+            Tag.objects.get_or_create(
+                slug=Tag.slug.slugify(tag), defaults=dict(name=tag)
+            )[0]
+            for tag in options["tags"]
+        )
         task_id = async_task(
             fetch_documents_for_charity,
             options["org_id"],
-            options["financial_year_end"],
+            financial_year_end=options["financial_year_end"],
+            tags=tags,
         )
         self.stdout.write(self.style.SUCCESS(f"Task {task_id} started"))
