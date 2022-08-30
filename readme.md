@@ -38,6 +38,9 @@ dokku run dj-account-fetch python ./manage.py update_charities
 # create superuser account
 dokku run dj-account-fetch python manage.py createsuperuser
 
+# create the elasticsearch index
+python manage.py search_index --create
+
 # setup account directory
 dokku storage:ensure-directory dj-account-fetch
 dokku storage:mount dj-account-fetch /var/lib/dokku/data/storage/dj-account-fetch:/app/storage
