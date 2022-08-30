@@ -45,6 +45,9 @@ python manage.py search_index --create
 dokku storage:ensure-directory dj-account-fetch
 dokku storage:mount dj-account-fetch /var/lib/dokku/data/storage/dj-account-fetch:/app/storage
 dokku config:set dj-account-fetch --no-restart MEDIA_ROOT=/app/storage/media/
+
+# setup ocrmypdf
+sudo dokku plugin:install https://github.com/dokku-community/dokku-apt apt
 ```
 
 
