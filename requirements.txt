@@ -219,6 +219,8 @@ wcwidth==0.2.5
     # via blessed
 websockets==10.3
     # via pyppeteer
+whitenoise==6.2.0
+    # via -r requirements.in
 zipp==3.8.1
     # via importlib-metadata
 

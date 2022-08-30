@@ -28,6 +28,15 @@ dokku config:set --no-restart dj-account-fetch SECRET_KEY='<insert secret key>'
 
 # setup hosts
 dokku config:set dj-account-fetch --no-restart DEBUG=false ALLOWED_HOSTS="hostname.example.com"
+
+# import initial charity data
+dokku run dj-account-fetch python ./manage.py import_oscr
+dokku run dj-account-fetch python ./manage.py import_ccew
+dokku run dj-account-fetch python ./manage.py import_ccni
+dokku run dj-account-fetch python ./manage.py update_charities
+
+# create superuser account
+dokku run dj-account-fetch python manage.py createsuperuser
 ```
 
 

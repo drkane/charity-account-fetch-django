@@ -21,3 +21,4 @@ ocrmypdf
 django-htmx
 django-autoslug
 gunicorn
+whitenoise
