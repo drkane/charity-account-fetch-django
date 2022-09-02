@@ -43,4 +43,9 @@ urlpatterns = [
         views.bulk.bulk_record_status,
         name="bulk.bulk_record_status",
     ),
+    path(
+        "stats",
+        views.stats.stats_index,
+        name="stats.stats_index",
+    ),
 ]

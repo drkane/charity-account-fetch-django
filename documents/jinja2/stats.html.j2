@@ -1,0 +1,38 @@
+{% extends "base.html.j2" %}
+{% block content %}
+    <h2 class="ma0 pa0">Queue stats</h2>
+    <table class="table collapse w-100 f5">
+        <thead>
+            <tr>
+                <th class="bb bw1 b--light-gray tl pa2" title="Id of this cluster. Corresponds with the process id.">cluster_id</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="Time Of Birth">tob</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="Shows the number of seconds passed since the time of birth">uptime</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="The number of times the sentinel had to start a new worker process.">reincarnations</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="String representing the current cluster status.">status</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="The number of tasks currently in the task queue. [1]">task_q_size</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="The number of tasks currently in the result queue. [1]">done_q_size</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="The pid of the pusher process">pusher</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="The pid of the monitor process">monitor</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="The pid of the sentinel process">sentinel</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="A list of process ids of the workers currently in the cluster pool.">workers</th>
+            </tr>
+        </thead>
+        <tbody>
+    {% for stat in clusters %}
+        <tr>
+            <td class="tl pa2">{{ stat.cluster_id }}</td>
+            <td class="tl pa2">{{ stat.tob }}</td>
+            <td class="tl pa2">{{ stat.uptime }}</td>
+            <td class="tl pa2">{{ stat.reincarnations }}</td>
+            <td class="tl pa2">{{ stat.status }}</td>
+            <td class="tl pa2">{{ stat.task_q_size }}</td>
+            <td class="tl pa2">{{ stat.done_q_size }}</td>
+            <td class="tl pa2">{{ stat.pusher }}</td>
+            <td class="tl pa2">{{ stat.monitor }}</td>
+            <td class="tl pa2">{{ stat.sentinel }}</td>
+            <td class="tl pa2">{{ stat.workers }}</td>
+        </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+{% endblock content %}
