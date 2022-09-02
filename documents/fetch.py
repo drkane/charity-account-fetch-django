@@ -24,6 +24,13 @@ class CharityFetchError(Exception):
     pass
 
 
+OCRMYPDF_OPTIONS = dict(
+    keep_temporary_files=False,
+    optimize=0,
+    fast_web_view=0,
+)
+
+
 def fetch_documents_for_charity(
     org_id, financial_year_end=None, session=None, tags=None
 ):
@@ -84,7 +91,7 @@ def fetch_account(account, financial_year, session=None, tags=None):
     if filedata["content_length"] < 4000:
         try:
             buffer = io.BytesIO()
-            ocrmypdf.ocr(io.BytesIO(r.content), buffer)
+            ocrmypdf.ocr(io.BytesIO(r.content), buffer, **OCRMYPDF_OPTIONS)
             print("OCRing PDF")
             pdf_file = ContentFile(
                 buffer.getvalue(), name=f"{account.regno}-{account.fyend}.pdf"
@@ -154,7 +161,7 @@ def document_from_file(org_id, financial_year_end, filepath, tags=None):
     if filedata["content_length"] < 4000:
         try:
             buffer = io.BytesIO()
-            ocrmypdf.ocr(filepath, buffer)
+            ocrmypdf.ocr(filepath, buffer, **OCRMYPDF_OPTIONS)
             print("OCRing PDF")
             pdf_file = ContentFile(
                 buffer.getvalue(),
