@@ -22,3 +22,4 @@ django-htmx
 django-autoslug
 gunicorn
 whitenoise
+django-debug-toolbar

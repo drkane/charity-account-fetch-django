@@ -16,17 +16,27 @@
             <form action="{{url_for('doc.doc_search')}}">
                 {{ search(q, 'Term to find in document', 'Search documents', show_guidance=true) }}
             </form>
-            <ul class="list db cf mt3 mb0 pa0">
-                {% for tag in tag_counts %}
-                <li class="bg-light-gray near-black dib mb2 mr2 f6">
-                    <a href="{{ url_for('doc.doc_search')|replace_url_params(tag=tag.key) }}" class="link near-black underline-hover pv1 ph2 dib fl">{{ tag.key }}</a>
-                    <span class="pv1 ph2 bg-blue white fl">{{ tag.doc_count}}</span>
-                </li>
-                {% endfor %}
-            </ul>
         </li>
         <li class="mb5 db">
             <h3 class="ma0 pa0">
+                Tagged document search
+            </h3>
+            {% if tag_counts %}
+            <p class="f4 gray ma0 pa0">
+                {{ "{:,.0f}".format(tag_counts|length) }} tags
+            </p>
+            <ul class="list db cf mt3 mb0 pa0">
+                {% for tag in tag_counts %}
+                <li class="bg-light-gray near-black dib mb2 mr2 f6">
+                    <a href="{{ url_for('doc.tag_search', tag=tag.slug) }}" class="link near-black underline-hover pv1 ph2 dib fl">{{ tag.name }}</a>
+                    <span class="pv1 ph2 bg-blue white fl">{{ tag.doc_count or 0 }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </li>
+        <li class="mb5 db">
+            <h3 class="">
                 <a href="{{url_for('charity.charity_search')}}" class="link underline-hover near-black">
                     Search charities
                 </a>
@@ -35,5 +45,16 @@
                 {{ search(q, 'Search charities', 'Search charities') }}
             </form>
         </li>
+        {% if request.user.has_perm("documents.add_document") %}
+        <li class="mb5 db">
+            <h3 class="">
+                Admin tasks
+            </h3>
+            <ul>
+                <li><a href="{{url_for('doc.doc_upload_bulk')}}" class="link dark-blue underline-hover">Bulk upload tool</a></li>
+                <li><a href="{{url_for('admin:app_list', args=('documents'))}}" class="link dark-blue underline-hover">Django admin</a></li>
+            </ul>
+        </li>
+        {% endif %}
     </ul>
 {% endblock content %}

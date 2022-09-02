@@ -14,20 +14,27 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
 import documents.views as views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.main.index, name="main.index"),
-    path("search", views.search.search, name="doc.doc_search"),
+    path(
+        "search/tag/<str:tag>.csv",
+        views.search.tag_search,
+        name="doc.tag_search_csv",
+        kwargs={"filetype": "csv"},
+    ),
+    path("search/tag/<str:tag>", views.search.tag_search, name="doc.tag_search"),
     path(
         "search.csv",
         views.search.search,
         name="doc.doc_search_csv",
         kwargs={"filetype": "csv"},
     ),
+    path("search", views.search.search, name="doc.doc_search"),
     path("doc/bulkupload", views.bulk.doc_upload_bulk, name="doc.doc_upload_bulk"),
     path("doc/<int:id>", views.doc.doc_get, name="doc.doc_get"),
     path("doc/<int:id>/embed", views.doc.doc_get_embed, name="doc.doc_get_embed"),
@@ -48,4 +55,5 @@ urlpatterns = [
         views.stats.stats_index,
         name="stats.stats_index",
     ),
+    path("__debug__/", include("debug_toolbar.urls")),
 ]

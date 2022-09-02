@@ -1,0 +1,115 @@
+{% from '_search.html.j2' import search %}
+{% extends "base.html.j2" %}
+{% block content %}
+<h2>Search with Tag - {{ tag.name }}</h4>
+<form>
+    {{ search(q, "Search terms, separated by semicolon (';'", 'Search documents', show_guidance=true) }}
+</form>
+<hr class="mv5 ">
+<h3>Summary</h3>
+<div class="w-50 fl">
+<p><strong>{{ totals.documents }}</strong> documents in total</p>
+<table class="table collapse f5">
+    <thead>
+        <tr>
+            <th class="bb bw1 b--light-gray tl pa2">Search term</th>
+            <th class="bb bw1 b--light-gray tl pa2">Number of occurences</th>
+            <th class="bb bw1 b--light-gray tl pa2">% of documents</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for term, count in search_terms.items() %}
+        <tr>
+            <td class="bb bw1 b--light-gray pa2 tl">{{ term }}</td>
+            <td class="bb bw1 b--light-gray pa2 tr">{{ "{:,.0f}".format(count) }}</td>
+            <td class="bb bw1 b--light-gray pa2 tr">{{ "{:.1%}".format(count / totals.documents) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+<div class="w-50 fl">
+<p>
+<strong>{{ totals.with_any_term }}</strong> documents match at least one search term 
+(<strong>{{ "{:.1%}".format(totals.with_any_term / totals.documents) }}</strong> of documents).
+</p>
+{% if search_terms|length >1 %}
+<table class="table collapse f5">
+    <thead>
+        <tr>
+            <th class="bb bw1 b--light-gray tl pa2">Number of matches</th>
+            <th class="bb bw1 b--light-gray tl pa2">Documents</th>
+            <th class="bb bw1 b--light-gray tl pa2">% of documents</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for term, count in totals.matching_term_count|dictsort(false) %}
+        <tr>
+            <td class="bb bw1 b--light-gray pa2 tl">{{ term }}</td>
+            <td class="bb bw1 b--light-gray pa2 tr">{{ "{:,.0f}".format(count) }}</td>
+            <td class="bb bw1 b--light-gray pa2 tr">{{ "{:.1%}".format(count / totals.documents) }}</td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td class="bb bw1 b--light-gray pa2 tl">1 or more</td>
+            <td class="bb bw1 b--light-gray pa2 tr">{{ "{:,.0f}".format(totals.with_any_term) }}</td>
+            <td class="bb bw1 b--light-gray pa2 tr">{{ "{:.1%}".format(totals.with_any_term / totals.documents) }}</td>
+        </tr>
+    </tbody>
+</table>
+{% endif %}
+</div>
+<hr class="mv5 ">
+<h3>Details</h3>
+<p class="f6 gray mb4">
+    {% if page_obj.paginator.num_pages != 1 %}
+    {{ page_obj.start_index() }} - {{page_obj.end_index() }} of {{page_obj.paginator.count}} results
+    {% else %}
+    {{ page_obj.paginator.count }} results
+    {% endif %}
+    | <a href="{{downloadUrl}}" class="link blue">Download CSV</a>
+</p>
+<table class="table w-100 collapse f6">
+    <thead>
+        <tr>
+            <th class="bb bw1 b--light-gray tl pa2">Year</th>
+            <th class="bb bw1 b--light-gray tl pa2">Charity</th>
+            {% for term in search_terms %}
+            <th class="bb bw1 b--light-gray tc pa2">{{ term }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for document in page_obj.object_list %}
+        <tr>
+            <td class="bb bw1 b--light-gray tl pa2">
+                {{ document.document.financial_year.financial_year_end|dateformat(o="%Y") }}
+            </td>
+            <td class="bb bw1 b--light-gray tl pa2">
+                <a href="{{ url_for('doc.doc_get', id=document.document.id) }}" target="_blank" class="link blue underline-hover b">{{ document.document.financial_year.charity.name }}</a>
+                <br>
+                <span class="gray f6">
+                    {{ document.document.financial_year.financial_year_end }}
+                    | {{ document.document.financial_year.charity.org_id }}
+                    {% if document.document.financial_year.income%}
+                    | £{{ "{:,.0f}".format(document.document.financial_year.income) }}
+                    {% endif %}
+                </span>
+            </td>
+            {% for term in search_terms %}
+            {% if document.search[term] %}
+            <td class="bb bw1 b--light-gray tc pa0 bg-washed-green green">
+                <a href="{{ url_for('doc.doc_get', id=document.document.id, q=term) }}" target="_blank" class="link green underline-hover b pa2 dib h-100 w-100">&#10003; Found</a>
+            </td>
+            {% else %}
+            <td class="bb bw1 b--light-gray tc pv2 bg-washed-red red f6">
+            Not found
+            </td>
+            {% endif %}
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% include "_pagination.html.j2" %}
+{% endblock content %}

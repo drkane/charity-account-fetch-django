@@ -59,10 +59,13 @@ django==4.1
     # via
     #   -r requirements.in
     #   dj-database-url
+    #   django-debug-toolbar
     #   django-htmx
     #   django-picklefield
     #   django-q
 django-autoslug==1.9.8
+    # via -r requirements.in
+django-debug-toolbar==3.6.0
     # via -r requirements.in
 django-elasticsearch-dsl==7.2.2
     # via -r requirements.in
@@ -189,7 +192,9 @@ six==1.16.0
 soupsieve==2.3.2.post1
     # via beautifulsoup4
 sqlparse==0.4.2
-    # via django
+    # via
+    #   django
+    #   django-debug-toolbar
 titlecase==2.4
     # via -r requirements.in
 tomli==2.0.1
