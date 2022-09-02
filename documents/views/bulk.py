@@ -69,6 +69,7 @@ def get_status(record: CharityFinancialYear, documents):
     return "Available to fetch"
 
 
+@login_required
 @permission_required("documents.add_document")
 def bulk_load_list(request):
 
@@ -121,6 +122,7 @@ def bulk_load_list(request):
     )
 
 
+@login_required
 @permission_required("documents.add_document")
 def bulk_record_status(request, fy_id):
     fy = get_object_or_404(CharityFinancialYear, id=fy_id)

@@ -1,4 +1,5 @@
 import markupsafe
+from django.contrib.auth.decorators import login_required
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.clickjacking import xframe_options_sameorigin
@@ -8,6 +9,7 @@ from documents.documents import DocumentDocument as DocumentModel
 from documents.models import Document
 
 
+@login_required
 def doc_get(request, id):
     doc_highlight = get_doc(id, request.GET.get("q"))
     doc = get_object_or_404(Document, id=id)
@@ -22,6 +24,7 @@ def doc_get(request, id):
     )
 
 
+@login_required
 @xframe_options_sameorigin
 def doc_get_embed(request, id):
     doc_highlight = get_doc(id, request.GET.get("q"))
@@ -37,6 +40,7 @@ def doc_get_embed(request, id):
     )
 
 
+@login_required
 @xframe_options_sameorigin
 def doc_get_pdf(request, id):
     doc = get_object_or_404(Document, id=id)

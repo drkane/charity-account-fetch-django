@@ -1,10 +1,12 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from elasticsearch_dsl import A
 
-from documents.models import Tag
 from documents.documents import DocumentDocument as DocumentModel
+from documents.models import Tag
 
 
+@login_required
 def index(request):
 
     # get count for all tags

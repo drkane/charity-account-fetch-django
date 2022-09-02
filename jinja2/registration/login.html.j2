@@ -1,0 +1,31 @@
+{% extends "base.html.j2" %}
+{% block content %}
+
+
+  {% if form.errors %}
+    <p>Your username and password didn't match. Please try again.</p>
+  {% endif %}
+
+  {% if next %}
+    {% if user.is_authenticated %}
+      <p>Your account doesn't have access to this page. To proceed,
+      please login with an account that has access.</p>
+    {% else %}
+      <p>Please login to see this page.</p>
+    {% endif %}
+  {% endif %}
+
+  <form method="post" action="{{ url_for('login') }}" class="center pa4 bg-washed-blue mw6">
+    {{ csrf_input }}
+    <div class="mb4">
+        {{ form.username.label_tag() }}<br>
+        {{ form.username }}
+    </div>
+    <div class="mb4">
+        {{ form.password.label_tag() }}<br>
+        {{ form.password }}
+    </div>
+    <input type="submit" value="Login" class="f4 button-reset ba b--black-20 pa2 tc bg-animate bg-washed-purple dim near-black pointer br2-ns mt2">
+    <input type="hidden" name="next" value="{{ next }}">
+  </form>
+{% endblock%}

@@ -1,18 +1,17 @@
-from collections import Counter
 import csv
+from collections import Counter
 
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.http import HttpResponse, Http404
-from django.shortcuts import render, resolve_url, get_object_or_404
+from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404, render, resolve_url
 from django.utils.text import slugify
 from elasticsearch_dsl import A
 from elasticsearch_dsl.query import SimpleQueryString, Terms
 
-from documents.models import Tag, Document
-from documents.documents import (
-    DocumentDocument as DocumentModel,
-    ElasticsearchPaginator,
-)
+from documents.documents import DocumentDocument as DocumentModel
+from documents.documents import ElasticsearchPaginator
+from documents.models import Document, Tag
 
 
 def document_search(q=None, tags=None, highlight=True):
@@ -38,6 +37,7 @@ def document_search(q=None, tags=None, highlight=True):
     return s
 
 
+@login_required
 def search_csv(request):
     q = request.GET.get("q")
     tags = request.GET.getlist("tag")
@@ -73,6 +73,7 @@ def search_csv(request):
     return response
 
 
+@login_required
 def search(request, filetype="html"):
     if filetype == "csv":
         return search_csv(request)
@@ -105,6 +106,7 @@ def search(request, filetype="html"):
     )
 
 
+@login_required
 def tag_search(request, tag, filetype="html"):
     tag = get_object_or_404(Tag, slug=Tag._meta.get_field("slug").slugify(tag))
     documents = (
@@ -168,6 +170,7 @@ def tag_search(request, tag, filetype="html"):
     )
 
 
+@login_required
 def tag_search_csv(request, documents, search_results, search_terms):
     response = HttpResponse(
         content_type="text/csv",
