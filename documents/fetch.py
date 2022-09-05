@@ -1,18 +1,25 @@
 import io
 import logging
 import re
-from collections import namedtuple
 import time
+from collections import namedtuple
 
 import dateutil.parser
 import ocrmypdf
 import requests_cache
-from django.core.files.base import ContentFile, File
+from django.conf import settings
+from django.core.files.base import ContentFile
 from django.utils import timezone
 from requests_html import HTMLSession
 
 from ccew.models import Charity as CCEWCharity
-from documents.models import Charity, CharityFinancialYear, Document, Tag
+from documents.models import (
+    Charity,
+    CharityFinancialYear,
+    Document,
+    DocumentStatus,
+    Tag,
+)
 from documents.utils import convert_file
 
 requests_cache.install_cache("demo_cache")
@@ -25,11 +32,31 @@ class CharityFetchError(Exception):
     pass
 
 
-OCRMYPDF_OPTIONS = dict(
-    keep_temporary_files=False,
-    optimize=0,
-    fast_web_view=0,
-)
+def get_document(financial_year, tags=None):
+    document, created = Document.objects.get_or_create(
+        financial_year=financial_year,
+        defaults={
+            "created_at": timezone.now(),
+            "updated_at": timezone.now(),
+        },
+    )
+    if tags:
+        for tag in tags:
+            if isinstance(tag, str):
+                tag, _ = Tag.objects.get_or_create(
+                    slug=Tag._meta.get_field("slug").slugify(tag)
+                )
+            document.tags.add(tag)
+
+    if not created:
+        document.save()
+        raise CharityFetchError(
+            "Document already exists for {} {}".format(
+                financial_year.charity.org_id,
+                financial_year.financial_year_end,
+            )
+        )
+    return document
 
 
 def fetch_documents_for_charity(
@@ -74,83 +101,54 @@ def fetch_documents_for_charity(
         raise CharityFetchError("No accounts found")
     logging.info("{:,.0f} accounts found for {}".format(len(accounts), charity.org_id))
 
+    documents = []
     for account in accounts:
-        document = fetch_account(
-            account, financial_years[account.fyend], session, tags=tags, pause=pause
-        )
+        try:
+            documents.append(
+                fetch_account(
+                    account,
+                    financial_years[account.fyend],
+                    session,
+                    tags=tags,
+                    pause=pause,
+                )
+            )
+        except CharityFetchError as e:
+            financial_years[account.fyend].status = DocumentStatus.FAILED
+            financial_years[account.fyend].status_notes = str(e)
+            financial_years[account.fyend].save()
+            logging.error(e)
+            continue
 
-    return None
+    return documents
 
 
 def fetch_account(account, financial_year, session=None, tags=None, pause=10):
     if session is None:
         session = HTMLSession()
 
-    # check whether document already exists
-    document = Document.objects.filter(financial_year=financial_year).first()
-    if document is not None:
-        if tags:
-            for tag in tags:
-                if isinstance(tag, str):
-                    tag = Tag.objects.get_or_create(
-                        slug=Tag._meta.get_field("slug").slugify(tag)
-                    )
-                document.tags.add(tag)
-        logging.warning(
-            "Document already exists for {} {}".format(account.regno, account.fyend)
-        )
-        return document
+    # get the document (fails after saving the tags if the document already exists)
+    document = get_document(financial_year, tags=tags)
 
-    # Get the PDF
+    # Pause to save the server
     if pause:
         logging.debug("Pausing for {} seconds".format(pause))
         time.sleep(pause)
+
+    # Get the PDF
     logging.debug("Fetching {}".format(account.url))
     r = session.get(account.url)
     pdf_file = ContentFile(r.content, name=f"{account.regno}-{account.fyend}.pdf")
-    filedata = convert_file(pdf_file)
-    logging.debug(
-        "PDF file fetched pages: {:,.0f} size: {:,.0f}".format(
-            filedata["pages"], filedata["content_length"]
-        )
-    )
-
-    # OCR the PDF if necessary
-    if filedata["content_length"] < 4000:
-        try:
-            buffer = io.BytesIO()
-            ocrmypdf.ocr(io.BytesIO(r.content), buffer, **OCRMYPDF_OPTIONS)
-            logging.info("OCRing PDF")
-            pdf_file = ContentFile(
-                buffer.getvalue(), name=f"{account.regno}-{account.fyend}.pdf"
-            )
-            filedata = convert_file(pdf_file)
-        except ocrmypdf.exceptions.PriorOcrFoundError:
-            logging.info("PDF already OCR'd")
-        except ocrmypdf.exceptions.EncryptedPdfError:
-            logging.info("PDF is encrypted")
 
     # Save the PDF to the database
-    document = Document(
-        financial_year=financial_year,
-        file=pdf_file,
-        content=filedata["content"],
-        content_length=filedata["content_length"],
-        pages=filedata["pages"],
-        content_type=filedata["content_type"],
-        language=filedata["language"],
-        created_at=timezone.now(),
-        updated_at=timezone.now(),
-    )
+    document.file = pdf_file
     document.save()
-    if tags:
-        for tag in tags:
-            if isinstance(tag, str):
-                tag = Tag.objects.get_or_create(
-                    slug=Tag._meta.get_field("slug").slugify(tag)
-                )
-            document.tags.add(tag)
-    logging.info("Document created for {} {}".format(account.regno, account.fyend))
+
+    logging.info(
+        "Document {} created for {} {}".format(
+            document.id, account.regno, account.fyend
+        )
+    )
     return document
 
 
@@ -161,66 +159,19 @@ def document_from_file(org_id, financial_year_end, filepath, tags=None):
         financial_year_end=financial_year_end,
     )
 
-    # check whether document already exists
-    document = Document.objects.filter(financial_year=financial_year).first()
-    if document is not None:
-        if tags:
-            for tag in tags:
-                if isinstance(tag, str):
-                    tag = Tag.objects.get_or_create(
-                        slug=Tag._meta.get_field("slug").slugify(tag)
-                    )
-                document.tags.add(tag)
-        print(
-            "Document already exists for {} {}".format(
-                charity.org_id, financial_year.financial_year_end
-            )
-        )
-        return document
+    # get the document (fails after saving the tags if the document already exists)
+    document = get_document(financial_year, tags=tags)
 
     # Get the PDF
     pdf_file = ContentFile(
         open(filepath, "rb").read(),
         name=f"{charity.org_id}-{financial_year.financial_year_end}.pdf",
     )
-    filedata = convert_file(pdf_file)
-
-    # OCR the PDF if necessary
-    if filedata["content_length"] < 4000:
-        try:
-            buffer = io.BytesIO()
-            ocrmypdf.ocr(filepath, buffer, **OCRMYPDF_OPTIONS)
-            logging.info("OCRing PDF")
-            pdf_file = ContentFile(
-                buffer.getvalue(),
-                name=f"{charity.org_id}-{financial_year.financial_year_end}.pdf",
-            )
-            filedata = convert_file(pdf_file)
-        except ocrmypdf.exceptions.PriorOcrFoundError:
-            logging.info("PDF already OCR'd")
-        except ocrmypdf.exceptions.EncryptedPdfError:
-            logging.info("PDF is encrypted")
 
     # Save the PDF to the database
-    document = Document(
-        financial_year=financial_year,
-        file=pdf_file,
-        content=filedata["content"],
-        content_length=filedata["content_length"],
-        pages=filedata["pages"],
-        content_type=filedata["content_type"],
-        language=filedata["language"],
-        created_at=timezone.now(),
-        updated_at=timezone.now(),
-    )
+    document.file = pdf_file
     document.save()
-    if tags:
-        for tag in tags:
-            if isinstance(tag, str):
-                tag = Tag.objects.get_or_create(
-                    slug=Tag._meta.get_field("slug").slugify(tag)
-                )
-            document.tags.add(tag)
+
     print("Document created for {} {}".format(org_id, financial_year_end))
     return document
 

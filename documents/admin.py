@@ -119,7 +119,6 @@ class CharityFinancialYearAdmin(admin.ModelAdmin):
     inlines = [
         DocumentAdminList,
     ]
-    readonly_fields = ("task_id",)
 
     def charity_name(self, record):
         return to_titlecase(record.charity.name)

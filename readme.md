@@ -38,6 +38,9 @@ dokku run dj-account-fetch python ./manage.py update_charities
 # create superuser account
 dokku run dj-account-fetch python manage.py createsuperuser
 
+# create cache table
+dokku run dj-account-fetch python manage.py createcachetable
+
 # create the elasticsearch index
 python manage.py search_index --create
 

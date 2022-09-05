@@ -1,6 +1,6 @@
 import markupsafe
 from django.contrib.auth.decorators import login_required
-from django.http import FileResponse
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from elasticsearch_dsl.query import SimpleQueryString, Terms
@@ -44,7 +44,9 @@ def doc_get_embed(request, id):
 @xframe_options_sameorigin
 def doc_get_pdf(request, id):
     doc = get_object_or_404(Document, id=id)
-    return FileResponse(doc.file.open("rb"))
+    if doc.file:
+        return FileResponse(doc.file.open("rb"))
+    raise Http404("No PDF available")
 
 
 def get_doc(id, q=None):

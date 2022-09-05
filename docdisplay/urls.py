@@ -47,7 +47,7 @@ urlpatterns = [
         views.bulk.bulk_load_list,
     ),
     path(
-        "bulk/record_status/<int:fy_id>",
+        "bulk/record_status/<str:group_id>",
         views.bulk.bulk_record_status,
         name="bulk.bulk_record_status",
     ),

@@ -9,7 +9,7 @@
 {% if loop.last %}</ul></div>{% endif %}
 {% else %}
 <div class="pa2" hx-get="/bulk/record_status/{{ fy.fy.id }}"
-    hx-trigger="load delay:2s"
+    {# hx-trigger="load delay:2s" #}
     hx-swap="outerHTML"
     id="record-status-{{ fy.fy.id }}"
     hx-target="#record-status-{{ fy.fy.id }}">

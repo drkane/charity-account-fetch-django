@@ -1,0 +1,54 @@
+{% extends base_template %}
+
+{% set input_style = 'f6 f5-l input-reset ba bw1 b--black-20 db cf near-black bg-white pa2 lh-solid w5 br2-ns' %}
+{% set button_style = 'f6 f5-l button-reset fl pa3 base-font no-underline tc bn bg-animate bg-yellow dim near-black pointer br2-ns' %}
+
+{% block content %}
+<div hx-get="{{ url_for('bulk.bulk_record_status', group_id=group.id) }}" {% if group.pending_count %} hx-trigger="load delay:20s" hx-swap="outerHTML"{% endif %}>
+    <h2>Task in progress</h2>
+    <p>Task <code class="bg-light-gray pa1">{{ group.id }}</code> started <time datetime="{{ group.created_at }}">{{ group.created_at|naturaltime }}</time>.</p>
+    {% if group.pending_count == 0%}
+    <p>Task complete.</p>
+    {% endif %}
+
+    <div class="progress-bar mv4">
+    <div class="progress-bar__progress w-100 h2 bg-light-gray br4" style="width: 100%">
+        {% if group.success_count %}<div class="progress-bar__progress__inner h-100 bg-green white fl pa1 f5" style="width: {{ '{:,.3%}'.format(group.success_count / group.task_count) }}">{{ group.success_count }} succeeded</div>{% endif %}
+        {% if group.failure_count %}<div class="progress-bar__progress__inner h-100 bg-red white fl pa1 f5" style="width: {{ '{:,.3%}'.format(group.failure_count / group.task_count) }}">{{ group.failure_count }} failed</div>{% endif %}
+        {% if group.pending_count %}<div class="progress-bar__progress__inner h-100 bg-gray white fl pa1 f5" style="width: {{ '{:,.3%}'.format(group.pending_count / group.task_count) }}">{{ group.pending_count }} pending</div>{% endif %}
+    </div>
+    </div>
+
+    <table class="table f6 collapse w-100">
+    {% for task, financial_year in group.tasks(20) %}
+    <tr>
+        <th class="pa1 tl bt bb b--light-gray bw1 v-top">{{ loop.index }}</th>
+        <th class="pa1 tl bt bb b--light-gray bw1 v-top">
+        {% if financial_year %}
+        {% for document in financial_year.documents.all() %}
+        <a href="{{ url_for('doc.doc_get', id=document.id) }}">{{ financial_year }}</a><br>
+        {% else %}
+        {{ financial_year }}
+        {% endfor %}
+        {% endif %}
+        </th>
+        <td class="pa1 tl bt bb b--light-gray bw1 v-top">
+        {% if financial_year %}
+        <span title="{% if financial_year.task_id %}{{ financial_year.task_id }}{% endif %}">{{ financial_year.status }}</a>
+        {% endif %}
+        </td>
+        <td class="pa1 tl bt bb b--light-gray bw1 v-top mw5">
+        {% if financial_year and financial_year.status == "FAILED" %}
+        {{ financial_year.status_notes }}
+        {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    </table>
+</div>
+{% endblock %}
+
+{% block bodyscripts %}
+<script src="{{ url_for('static', filename='js/htmx.min.js') }}"></script>
+{{ django_htmx_script() }}
+{% endblock %}

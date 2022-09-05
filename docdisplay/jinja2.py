@@ -2,6 +2,7 @@ import re
 import urllib.parse
 from datetime import date, datetime
 
+from django.contrib.humanize.templatetags.humanize import naturalday, naturaltime
 from django.shortcuts import resolve_url
 from django.templatetags.static import static
 from django.urls import NoReverseMatch, reverse
@@ -97,6 +98,8 @@ def environment(**options):
             "replace_url_params": replace_url_params,
             "slugify": slugify,
             "to_titlecase": to_titlecase,
+            "naturaltime": naturaltime,
+            "naturalday": naturalday,
         }
     )
     return env

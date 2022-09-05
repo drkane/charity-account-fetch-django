@@ -47,7 +47,7 @@ class DocumentDocument(Document):
     def prepare_attachment(self, instance):
         return {
             "content": instance.content,
-            "content_length": len(instance.content),
+            "content_length": len(instance.content) if instance.content else 0,
             "pages": instance.pages,
             "content_type": instance.content_type,
             "language": instance.language,

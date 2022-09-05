@@ -41,6 +41,7 @@
 </table>
 <div class="w-100">
     <label class="db w-100 mt4 b" for="tag-input">Add one or more tags (separated by commas) to these documents</label>
-    <input class="mt2 {{ input_style }}" type="text" id="tag-input" name="tags">
+    <input class="mt2 {{ input_style }}" type="text" id="tag-input" name="tags" value="{{ request.POST.get('tags', '') }}">
     <input class="mt4 {{ button_style }}" type='submit' id='upload-docs' name="action" value='Fetch Documents' />
+    <input class="mt4 {{ button_style }}" type='submit' id='upload-docs' name="action" value='Redo preview' />
 </div>

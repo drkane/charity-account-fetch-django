@@ -38,10 +38,10 @@ class Command(BaseCommand):
             )[0]
             for tag in options["tags"]
         )
-        task_id = async_task(
-            fetch_documents_for_charity,
+        docs = fetch_documents_for_charity(
             options["org_id"],
             financial_year_end=options["financial_year_end"],
             tags=tags,
         )
-        self.stdout.write(self.style.SUCCESS(f"Task {task_id} started"))
+        for doc in docs:
+            self.stdout.write(self.style.SUCCESS(f"Document {doc.id} created"))

@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
+    "django.contrib.humanize",
     "django_htmx",
     "ccew",
     "ccni",
@@ -220,3 +221,13 @@ MEDIA_ROOT = os.environ.get("MEDIA_ROOT", os.path.join(BASE_DIR, "media"))
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# minimum number of characters to be considered a complete document
+MIN_DOC_LENGTH = 1000
+
+# Options for ocrmypdf
+OCRMYPDF_OPTIONS = dict(
+    keep_temporary_files=False,
+    optimize=0,
+    fast_web_view=0,
+)
