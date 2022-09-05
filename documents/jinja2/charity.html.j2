@@ -17,8 +17,8 @@
         {% for r in charity.financial_years.all() %}
             <tr>
                 <td class="pr4">{{ '{:%d %b %Y}'.format(r.financial_year_end|dateformat) }}</td>
-                <td class="tr ph3">£{{ '{:,.0f}'.format(r.income) }}</td>
-                <td class="tr ph3">£{{ '{:,.0f}'.format(r.expenditure) }}</td>
+                <td class="tr ph3">{% if r.income %}£{{ '{:,.0f}'.format(r.income) }}{% endif %}</td>
+                <td class="tr ph3">{% if r.expenditure %}£{{ '{:,.0f}'.format(r.expenditure) }}{% endif %}</td>
                 <td class="pr4">
                     {% if r.documents.exists() %}
                     {% for doc in r.documents.all() %}

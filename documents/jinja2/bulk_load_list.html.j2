@@ -19,7 +19,7 @@
         </tr>
     </thead>
     <tbody id='preview-data'>
-        {% for fy in records %}
+        {% for fy in records[0:100] %}
         <tr>
             <td class="pa2 tl">{{ fy.org_id }}</td>
             <td class="pa2 tl">{{ fy.fyend }}</td>

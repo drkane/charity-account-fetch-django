@@ -2,6 +2,7 @@ import io
 import logging
 import re
 from collections import namedtuple
+import time
 
 import dateutil.parser
 import ocrmypdf
@@ -32,13 +33,18 @@ OCRMYPDF_OPTIONS = dict(
 
 
 def fetch_documents_for_charity(
-    org_id, financial_year_end=None, session=None, tags=None
+    org_id,
+    financial_year_end=None,
+    session=None,
+    tags=None,
+    pause=10,
 ):
 
     if session is None:
         session = HTMLSession()
 
     charity = Charity.objects.get(org_id=org_id)
+    logging.info("Fetching documents for {}".format(charity.org_id))
 
     if financial_year_end == "all":
         financial_years = charity.financial_years.order_by("-financial_year_end")
@@ -50,22 +56,33 @@ def fetch_documents_for_charity(
         )
     financial_years = {f.financial_year_end: f for f in financial_years}
 
+    if not financial_years:
+        raise CharityFetchError("No financial years found")
+    logging.info(
+        "{:,.0f} financial accounts found for {}".format(
+            len(financial_years), charity.org_id
+        )
+    )
+
     scraper = get_charity_type(charity.org_id)
     accounts = [
         account
         for account in scraper.list_accounts(charity.org_id, session)
         if account.fyend in financial_years.keys()
     ]
+    if not accounts:
+        raise CharityFetchError("No accounts found")
+    logging.info("{:,.0f} accounts found for {}".format(len(accounts), charity.org_id))
 
     for account in accounts:
         document = fetch_account(
-            account, financial_years[account.fyend], session, tags=tags
+            account, financial_years[account.fyend], session, tags=tags, pause=pause
         )
 
     return None
 
 
-def fetch_account(account, financial_year, session=None, tags=None):
+def fetch_account(account, financial_year, session=None, tags=None, pause=10):
     if session is None:
         session = HTMLSession()
 
@@ -79,28 +96,39 @@ def fetch_account(account, financial_year, session=None, tags=None):
                         slug=Tag._meta.get_field("slug").slugify(tag)
                     )
                 document.tags.add(tag)
-        print("Document already exists for {} {}".format(account.regno, account.fyend))
+        logging.warning(
+            "Document already exists for {} {}".format(account.regno, account.fyend)
+        )
         return document
 
     # Get the PDF
+    if pause:
+        logging.debug("Pausing for {} seconds".format(pause))
+        time.sleep(pause)
+    logging.debug("Fetching {}".format(account.url))
     r = session.get(account.url)
     pdf_file = ContentFile(r.content, name=f"{account.regno}-{account.fyend}.pdf")
     filedata = convert_file(pdf_file)
+    logging.debug(
+        "PDF file fetched pages: {:,.0f} size: {:,.0f}".format(
+            filedata["pages"], filedata["content_length"]
+        )
+    )
 
     # OCR the PDF if necessary
     if filedata["content_length"] < 4000:
         try:
             buffer = io.BytesIO()
             ocrmypdf.ocr(io.BytesIO(r.content), buffer, **OCRMYPDF_OPTIONS)
-            print("OCRing PDF")
+            logging.info("OCRing PDF")
             pdf_file = ContentFile(
                 buffer.getvalue(), name=f"{account.regno}-{account.fyend}.pdf"
             )
             filedata = convert_file(pdf_file)
         except ocrmypdf.exceptions.PriorOcrFoundError:
-            print("PDF already OCR'd")
+            logging.info("PDF already OCR'd")
         except ocrmypdf.exceptions.EncryptedPdfError:
-            print("PDF is encrypted")
+            logging.info("PDF is encrypted")
 
     # Save the PDF to the database
     document = Document(
@@ -122,7 +150,7 @@ def fetch_account(account, financial_year, session=None, tags=None):
                     slug=Tag._meta.get_field("slug").slugify(tag)
                 )
             document.tags.add(tag)
-    print("Document created for {} {}".format(account.regno, account.fyend))
+    logging.info("Document created for {} {}".format(account.regno, account.fyend))
     return document
 
 
@@ -162,16 +190,16 @@ def document_from_file(org_id, financial_year_end, filepath, tags=None):
         try:
             buffer = io.BytesIO()
             ocrmypdf.ocr(filepath, buffer, **OCRMYPDF_OPTIONS)
-            print("OCRing PDF")
+            logging.info("OCRing PDF")
             pdf_file = ContentFile(
                 buffer.getvalue(),
                 name=f"{charity.org_id}-{financial_year.financial_year_end}.pdf",
             )
             filedata = convert_file(pdf_file)
         except ocrmypdf.exceptions.PriorOcrFoundError:
-            print("PDF already OCR'd")
+            logging.info("PDF already OCR'd")
         except ocrmypdf.exceptions.EncryptedPdfError:
-            print("PDF is encrypted")
+            logging.info("PDF is encrypted")
 
     # Save the PDF to the database
     document = Document(
@@ -222,6 +250,7 @@ class CCEW:
         logging.debug("Fetching account list: {}".format(url))
 
         r = session.get(url)
+        r.raise_for_status()
         accounts = []
         for tr in r.html.find("tr.govuk-table__row"):
             cells = list(tr.find("td"))
