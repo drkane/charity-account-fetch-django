@@ -59,6 +59,8 @@ def search_csv(request):
         "income": "income",
         "spending": "expenditure",
         "assets": None,
+        "content_length": None,
+        "pages": None,
         "search term": None,
         "tags": "tags",
     }
@@ -67,6 +69,8 @@ def search_csv(request):
     for k, result in enumerate(s.scan()):
         row = {
             "search term": q,
+            "content_length": result["attachment"]["content_length"],
+            "pages": result["attachment"]["pages"],
             **{k: getattr(result, v, None) for k, v in fields.items() if v is not None},
         }
         writer.writerow(row)
@@ -183,6 +187,8 @@ def tag_search_csv(request, documents, search_results, search_terms):
         "income": "income",
         "spending": "expenditure",
         "assets": None,
+        "content_length": "content_length",
+        "pages": "pages",
         **{term: None for term in search_terms.keys()},
     }
     writer = csv.DictWriter(response, fieldnames=fields.keys())
@@ -191,11 +197,12 @@ def tag_search_csv(request, documents, search_results, search_terms):
         row = {
             "regno": document.financial_year.charity.org_id,
             "fye": document.financial_year.financial_year_end,
-            "filename": document.file.name,
             "name": document.financial_year.charity.name,
             "income": document.financial_year.income,
             "spending": document.financial_year.expenditure,
             "assets": None,
+            "content_length": document.content_length,
+            "pages": document.pages,
             **{
                 term: search_results[term].get(str(document.id)) is not None
                 for term in search_terms.keys()

@@ -125,8 +125,8 @@ ELASTICSEARCH_DSL = {
 Q_CLUSTER = {
     "name": "DjangORM",
     "workers": 4,
-    "timeout": 90,
-    "retry": 120,
+    "timeout": 600,
+    "retry": 620,
     "queue_limit": 50,
     "bulk": 10,
     "orm": "default",
