@@ -44,7 +44,7 @@ class Command(BaseCommand):
         task_count = 0
         for doc in tqdm(Document.objects.filter(file__isnull=False)):
             if doc.file and "data/documents" in doc.file.name:
-                async_task(migrate_document, doc)
+                async_task(migrate_document, doc, group=group_id)
                 task_count += 1
         print("Queued {} tasks".format(task_count))
         print("Group ID: {}".format(group_id))
