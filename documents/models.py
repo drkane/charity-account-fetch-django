@@ -85,7 +85,7 @@ class FetchGroup(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.id
+        return str(self.id)
 
     def update_task_group(self):
         self.failure_count = count_group(self.id, failures=True)

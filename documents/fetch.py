@@ -48,7 +48,7 @@ def get_document(financial_year, tags=None):
                 )
             document.tags.add(tag)
 
-    if not created:
+    if not created and document.file:
         document.save()
         raise CharityFetchError(
             "Document already exists for {} {}".format(

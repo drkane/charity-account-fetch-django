@@ -68,7 +68,14 @@ class DocumentDocument(Document):
         """
         Return the queryset that should be indexed by this doc type.
         """
-        return self.django.model._default_manager.filter(content__isnull=False)
+        return self.django.model._default_manager.filter(content__isnull=False).filter(
+            file__isnull=False
+        )
+
+    def should_index_object(self, obj):
+        if not obj.content or not obj.file:
+            return False
+        return True
 
     class Index:
         name = "documents"

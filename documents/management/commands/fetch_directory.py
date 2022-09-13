@@ -44,10 +44,13 @@ class Command(BaseCommand):
                     continue
 
                 try:
-                    org_id, financial_year_end = filename[:-4].split("_")
-                    financial_year_end = datetime.datetime.strptime(
-                        financial_year_end, "%Y%m%d"
-                    ).date()
+                    filename_parts = filename[:-4].split("-")
+                    org_id = "-".join(filename_parts[:3])
+                    financial_year_end = datetime.date(
+                        int(filename_parts[3]),
+                        int(filename_parts[4]),
+                        int(filename_parts[5]),
+                    )
                 except ValueError:
                     self.stdout.write(self.style.ERROR(f"could not parse {filename}"))
                     continue
