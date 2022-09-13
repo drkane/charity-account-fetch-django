@@ -23,3 +23,5 @@ django-autoslug
 gunicorn
 whitenoise
 django-debug-toolbar
+django-storages
+boto3

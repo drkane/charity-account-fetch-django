@@ -227,7 +227,8 @@ class Document(models.Model):
         null=True,
     )
     pages = models.IntegerField(blank=True, null=True)
-    file = models.FileField(upload_to="data/documents", blank=True, null=True)
+    file = models.FileField(upload_to="accounts/pdf", blank=True, null=True)
+    file_text = models.FileField(upload_to="accounts/txt", blank=True, null=True)
 
     tags = models.ManyToManyField(Tag, blank=True, related_name="documents")
 
