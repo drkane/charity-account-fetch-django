@@ -145,6 +145,10 @@ class DocumentAdmin(admin.ModelAdmin):
         "language",
         "created_at",
     )
+    list_filter = (
+        ("content_type", admin.AllValuesFieldListFilter),
+        "created_at",
+    )
     list_display = (
         "charity_name",
         "charity_org_id",
