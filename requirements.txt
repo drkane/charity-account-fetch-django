@@ -163,6 +163,8 @@ platformdirs==2.5.2
     # via black
 pluggy==1.0.0
     # via ocrmypdf
+psutil==5.9.4
+    # via -r requirements.in
 psycopg2-binary==2.9.3
     # via charity-django
 pycparser==2.21

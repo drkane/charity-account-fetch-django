@@ -129,9 +129,9 @@ Q_CLUSTER = {
     "timeout": 600,
     "retry": 620,
     "queue_limit": 50,
-    "bulk": 10,
     "orm": "default",
     "max_attempts": 1,
+    "cpu_affinity": 1,
 }
 
 # Caching

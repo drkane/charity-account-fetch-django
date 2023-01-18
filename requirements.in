@@ -21,4 +21,5 @@ whitenoise
 django-debug-toolbar
 django-storages
 boto3
+psutil
 git+https://github.com/kanedata/charity-django.git
