@@ -125,7 +125,7 @@ ELASTICSEARCH_DSL = {
 # Django Q
 Q_CLUSTER = {
     "name": "DjangORM",
-    "workers": 4,
+    "workers": 2,
     "timeout": 600,
     "retry": 620,
     "queue_limit": 50,

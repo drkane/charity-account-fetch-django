@@ -4,7 +4,7 @@
             "quantity": 2
         },
         "worker": {
-            "quantity": 2
+            "quantity": 1
         }
     },
     "cron": [
