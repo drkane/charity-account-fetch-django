@@ -41,6 +41,8 @@ certifi==2022.6.15
     #   requests
 cffi==1.15.1
     # via cryptography
+charity-django @ git+https://github.com/kanedata/charity-django.git
+    # via -r requirements.in
 charset-normalizer==2.1.1
     # via
     #   pdfminer-six
@@ -60,10 +62,13 @@ cssselect==1.1.0
 deprecation==2.1.0
     # via pikepdf
 dj-database-url==1.0.0
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   charity-django
 django==4.1
     # via
     #   -r requirements.in
+    #   charity-django
     #   dj-database-url
     #   django-debug-toolbar
     #   django-htmx
@@ -95,7 +100,7 @@ exceptiongroup==1.0.0rc8
 fake-useragent==0.1.11
     # via requests-html
 faker==14.1.0
-    # via -r requirements.in
+    # via charity-django
 gunicorn==20.1.0
     # via -r requirements.in
 humanfriendly==10.0
@@ -107,7 +112,7 @@ img2pdf==0.4.4
 importlib-metadata==4.12.0
     # via pyppeteer
 inflect==6.0.0
-    # via -r requirements.in
+    # via charity-django
 isort==5.10.1
     # via -r requirements.in
 jinja2==3.1.2
@@ -159,7 +164,7 @@ platformdirs==2.5.2
 pluggy==1.0.0
     # via ocrmypdf
 psycopg2-binary==2.9.3
-    # via -r requirements.in
+    # via charity-django
 pycparser==2.21
     # via cffi
 pydantic==1.9.2
@@ -179,6 +184,7 @@ python-dateutil==2.8.2
     #   -r requirements.in
     #   arrow
     #   botocore
+    #   charity-django
     #   elasticsearch-dsl
     #   faker
 python-dotenv==0.20.0
@@ -190,12 +196,17 @@ reportlab==3.6.11
 requests==2.28.1
     # via
     #   -r requirements.in
+    #   charity-django
     #   requests-cache
     #   requests-html
 requests-cache==0.9.5
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   charity-django
 requests-html==0.10.0
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   charity-django
 s3transfer==0.6.0
     # via boto3
 six==1.16.0
@@ -212,12 +223,13 @@ sqlparse==0.4.2
     #   django
     #   django-debug-toolbar
 titlecase==2.4
-    # via -r requirements.in
+    # via charity-django
 tomli==2.0.1
     # via black
 tqdm==4.64.0
     # via
     #   -r requirements.in
+    #   charity-django
     #   ocrmypdf
     #   pyppeteer
 typing-extensions==4.3.0

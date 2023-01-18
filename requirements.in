@@ -1,13 +1,9 @@
 django
-inflect
-titlecase
 django-q
 dj-database-url
-psycopg2-binary
 requests
 requests-cache
 tqdm
-faker
 black
 isort
 django-elasticsearch-dsl
@@ -25,3 +21,4 @@ whitenoise
 django-debug-toolbar
 django-storages
 boto3
+git+https://github.com/kanedata/charity-django.git

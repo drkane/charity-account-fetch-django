@@ -1,8 +1,8 @@
+from charity_django.utils.text import to_titlecase
 from django.contrib import admin
 from django.db.models import Count
 from django.utils.translation import gettext_lazy as _
 
-from ccew.utils import to_titlecase
 from documents.models import Charity, CharityFinancialYear, Document, Tag
 
 

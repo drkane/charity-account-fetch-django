@@ -2,6 +2,7 @@ import re
 import urllib.parse
 from datetime import date, datetime
 
+from charity_django.utils.text import to_titlecase
 from django.contrib.humanize.templatetags.humanize import naturalday, naturaltime
 from django.shortcuts import resolve_url
 from django.templatetags.static import static
@@ -9,7 +10,6 @@ from django.urls import NoReverseMatch, reverse
 from django.utils.text import slugify
 from django_htmx.jinja import django_htmx_script
 
-from ccew.utils import to_titlecase
 from jinja2 import Environment
 
 

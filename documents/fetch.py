@@ -7,12 +7,12 @@ from collections import namedtuple
 import dateutil.parser
 import ocrmypdf
 import requests_cache
+from charity_django.ccew.models import Charity as CCEWCharity
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from requests_html import HTMLSession
 
-from ccew.models import Charity as CCEWCharity
 from documents.models import (
     Charity,
     CharityFinancialYear,

@@ -91,7 +91,7 @@ UPDATE_SQL = {
             date_annual_return_received as document_submitted,
             most_recent_year_income as income,
             most_recent_year_expenditure as expenditure,
-            'GB-SC-' || charity_number as charity_id,
+            'GB-SC-' || charity_id as charity_id,
             NOW() as created_at,
             NOW() as updated_at
         from oscr_charityfinancialyear

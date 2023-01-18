@@ -4,6 +4,7 @@ import uuid
 
 import ocrmypdf
 from autoslug import AutoSlugField
+from charity_django.utils.text import to_titlecase
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.db import models
@@ -18,7 +19,6 @@ from django_q.tasks import (
     result_group,
 )
 
-from ccew.utils import to_titlecase
 from documents.utils import convert_file
 
 
