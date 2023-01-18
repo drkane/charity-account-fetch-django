@@ -29,7 +29,7 @@ class Command(BaseCommand):
             charity__source=Regulators.CCEW,
             document_submitted__isnull=False,
         ).order_by(F("income").desc(nulls_last=True))[:n]
-        self.stdout.write(str(documents.query))
+
         for record in documents:
             task_id = async_task(
                 fetch_documents_for_charity,

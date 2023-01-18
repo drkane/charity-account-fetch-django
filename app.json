@@ -9,23 +9,23 @@
     },
     "cron": [
         {
-            "command": "python ./manage.py import_oscr",
+            "command": "python ./manage.py import_oscr &>> /var/log/dokku/apps/charity-account-fetch/import_oscr.log",
             "schedule": "46 20 * * 5"
         },
         {
-            "command": "python ./manage.py import_ccew",
+            "command": "python ./manage.py import_ccew &>> /var/log/dokku/apps/charity-account-fetch/import_ccew.log",
             "schedule": "16 2 * * 6"
         },
         {
-            "command": "python ./manage.py import_ccni",
+            "command": "python ./manage.py import_ccni &>> /var/log/dokku/apps/charity-account-fetch/import_ccni.log",
             "schedule": "46 2 * * 6"
         },
         {
-            "command": "python ./manage.py update_charities",
+            "command": "python ./manage.py update_charities &>> /var/log/dokku/apps/charity-account-fetch/update_charities.log",
             "schedule": "56 2 * * 6"
         },
         {
-            "command": "python ./manage.py queue_latest_documents -n 200",
+            "command": "python ./manage.py queue_latest_documents -n 400 &>> /var/log/dokku/apps/charity-account-fetch/queue_latest_documents.log",
             "schedule": "3 1 * * *"
         }
     ]
