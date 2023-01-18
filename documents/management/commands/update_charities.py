@@ -2,21 +2,23 @@ from django.core.management.base import BaseCommand
 from django.db import connection, transaction
 
 UPDATE_SQL = {
-    "Deleting existing CCEW records": """
-            delete from documents_charity
-            where lower(source) = 'ccew'
-            """,
     "Insert updated CCEW records": """
-            insert into documents_charity
-            select 'GB-CHC-' || registered_charity_number as org_id,
-                'CCEW' as source,
-                "charity_name" as name,
-                date_of_registration as date_registered,
-                date_of_removal as date_removed,
-                NOW() as created_at,
-                NOW() as updated_at
-            from ccew_charity
-            where linked_charity_number = 0
+        insert into documents_charity
+        select 'GB-CHC-' || registered_charity_number as org_id,
+            'CCEW' as source,
+            "charity_name" as name,
+            date_of_registration as date_registered,
+            date_of_removal as date_removed,
+            NOW() as created_at,
+            NOW() as updated_at
+        from ccew_charity
+        where linked_charity_number = 0
+        ON CONFLICT(org_id) DO UPDATE
+        SET name = excluded.name,
+            date_registered = excluded.date_registered,
+            date_removed = excluded.date_removed,
+            created_at = documents_charity.created_at,
+            updated_at = excluded.updated_at
     """,
     "Insert CCEW financial records": """
         insert into documents_charityfinancialyear (
@@ -38,21 +40,23 @@ UPDATE_SQL = {
             income = excluded.income,
             expenditure = excluded.expenditure
     """,
-    "Deleting existing CCNI records": """
-            delete from documents_charity
-            where lower(source) = 'ccni'
-            """,
     "Insert updated CCNI records": """
-            insert into documents_charity
-            select 'GB-NIC-' || reg_charity_number as org_id,
-                'CCNI' as source,
-                "charity_name" as name,
-                date_registered as date_registered,
-                null as date_removed,
-                NOW() as created_at,
-                NOW() as updated_at
-            from ccni_charity
-            where sub_charity_number = 0
+        insert into documents_charity
+        select 'GB-NIC-' || reg_charity_number as org_id,
+            'CCNI' as source,
+            "charity_name" as name,
+            date_registered as date_registered,
+            null as date_removed,
+            NOW() as created_at,
+            NOW() as updated_at
+        from ccni_charity
+        where sub_charity_number = 0
+        ON CONFLICT(org_id) DO UPDATE
+        SET name = excluded.name,
+            date_registered = excluded.date_registered,
+            date_removed = excluded.date_removed,
+            created_at = documents_charity.created_at,
+            updated_at = excluded.updated_at
     """,
     "Insert CCNI financial records": """
         insert into documents_charityfinancialyear (
@@ -69,20 +73,22 @@ UPDATE_SQL = {
         SET income = excluded.income,
             expenditure = excluded.expenditure
     """,
-    "Deleting existing OSCR records": """
-            delete from documents_charity
-            where lower(source) = 'oscr'
-            """,
     "Insert updated OSCR records": """
-            insert into documents_charity 
-            select 'GB-SC-' || charity_number as org_id,
-                'OSCR' as source,
-                "charity_name" as name,
-                registered_date as date_registered,
-                ceased_date as date_removed,
-                NOW() as created_at,
-                NOW() as updated_at
-            from oscr_charity
+        insert into documents_charity 
+        select 'GB-SC-' || charity_number as org_id,
+            'OSCR' as source,
+            "charity_name" as name,
+            registered_date as date_registered,
+            ceased_date as date_removed,
+            NOW() as created_at,
+            NOW() as updated_at
+        from oscr_charity
+        ON CONFLICT(org_id) DO UPDATE
+        SET name = excluded.name,
+            date_registered = excluded.date_registered,
+            date_removed = excluded.date_removed,
+            created_at = documents_charity.created_at,
+            updated_at = excluded.updated_at
     """,
     "Insert OSCR financial records": """
         insert into documents_charityfinancialyear (
