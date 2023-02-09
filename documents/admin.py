@@ -33,8 +33,22 @@ class CharityFinancialYearAdminList(admin.TabularInline):
         # "document_submitted",
         # "income",
         # "expenditure",
+        "document_file",
+    )
+    fields = (
+        "financial_year_end",
+        "document_due",
+        "document_submitted",
+        "income",
+        "expenditure",
+        "status",
+        "status_notes",
+        "document_file",
     )
     extra = 0
+
+    def document_file(self, instance):
+        return instance.document.file
 
 
 class DocumentAdminList(admin.StackedInline):

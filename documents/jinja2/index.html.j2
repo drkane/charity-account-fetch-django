@@ -4,7 +4,7 @@
     <ul class="list ma0 pa0 f4">
         <li class="mb4 db">
             <h3 class="ma0 pa0">
-                <a href="{{url_for('doc.doc_search')}}" class="link underline-hover near-black">
+                <a href="{{url_for('doc.doc_search')}}" class="link underline-hover near-black strike">
                     Search in documents
                 </a>
             </h3>
@@ -17,11 +17,11 @@
                 {{ search(q, 'Term to find in document', 'Search documents', show_guidance=true) }}
             </form>
         </li>
+        {% if tag_counts %}
         <li class="mb5 db">
             <h3 class="ma0 pa0">
                 Tagged document search
             </h3>
-            {% if tag_counts %}
             <p class="f4 gray ma0 pa0">
                 {{ "{:,.0f}".format(tag_counts|length) }} tags
             </p>
@@ -33,11 +33,11 @@
                 </li>
                 {% endfor %}
             </ul>
-            {% endif %}
         </li>
+        {% endif %}
         <li class="mb5 db">
             <h3 class="">
-                <a href="{{url_for('charity.charity_search')}}" class="link underline-hover near-black">
+                <a href="{{url_for('charity.charity_search')}}" class="link underline-hover near-black strike">
                     Search charities
                 </a>
             </h3>

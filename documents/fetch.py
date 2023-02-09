@@ -2,37 +2,32 @@ import io
 import logging
 import re
 import time
-from collections import namedtuple
 
-import dateutil.parser
 import ocrmypdf
 import requests_cache
 from charity_django.ccew.models import Charity as CCEWCharity
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.utils import timezone
+from pdfminer.pdfparser import PDFSyntaxError
 from requests_html import HTMLSession
 
+from documents.exceptions import DocAlreadyExists
 from documents.models import (
     Charity,
+    CharityFetchError,
     CharityFinancialYear,
     Document,
     DocumentStatus,
     Tag,
 )
-from documents.utils import convert_file
+from documents.scrapers import Account, get_charity_type
+from documents.utils import convert_file, do_document_ocr
 
 requests_cache.install_cache("demo_cache")
 
 
-Account = namedtuple("Account", ["url", "fyend", "regno", "size"], defaults=[None])
-
-
-class CharityFetchError(Exception):
-    pass
-
-
-def get_document(financial_year, tags=None):
+def get_document(financial_year, tags=None, fail_if_exists=True):
     document, created = Document.objects.get_or_create(
         financial_year=financial_year,
         defaults={
@@ -49,13 +44,20 @@ def get_document(financial_year, tags=None):
             document.tags.add(tag)
 
     if not created and document.file:
-        document.save()
-        raise CharityFetchError(
-            "Document already exists for {} {}".format(
-                financial_year.charity.org_id,
-                financial_year.financial_year_end,
+        if fail_if_exists:
+            raise DocAlreadyExists(
+                "Document already exists for {} {}".format(
+                    financial_year.charity.org_id,
+                    financial_year.financial_year_end,
+                )
             )
-        )
+        else:
+            logging.info(
+                "Document already exists for {} {} - replacing with new document".format(
+                    financial_year.charity.org_id,
+                    financial_year.financial_year_end,
+                )
+            )
     return document
 
 
@@ -65,6 +67,7 @@ def fetch_documents_for_charity(
     session=None,
     tags=None,
     pause=10,
+    fail_if_exists=True,
 ):
 
     if session is None:
@@ -86,8 +89,8 @@ def fetch_documents_for_charity(
     if not financial_years:
         raise CharityFetchError("No financial years found")
     logging.info(
-        "{:,.0f} financial accounts found for {}".format(
-            len(financial_years), charity.org_id
+        "{:,.0f} financial accounts found for {} ({})".format(
+            len(financial_years), charity.org_id, financial_year_end
         )
     )
 
@@ -98,57 +101,141 @@ def fetch_documents_for_charity(
         if account.fyend in financial_years.keys()
     ]
     if not accounts:
-        raise CharityFetchError("No accounts found")
-    logging.info("{:,.0f} accounts found for {}".format(len(accounts), charity.org_id))
+        for financial_year in financial_years.values():
+            financial_year.status = DocumentStatus.FAILED
+            financial_year.status_notes = "Accounts not found"
+            financial_year.save()
+        return []
+    logging.info(
+        "{:,.0f} accounts found for {} ({})".format(
+            len(accounts), charity.org_id, financial_year_end
+        )
+    )
 
     documents = []
     for account in accounts:
+        financial_year = financial_years[account.fyend]
         try:
             documents.append(
                 fetch_account(
                     account,
-                    financial_years[account.fyend],
+                    financial_year,
                     session,
                     tags=tags,
                     pause=pause,
+                    fail_if_exists=fail_if_exists,
                 )
             )
-        except CharityFetchError as e:
-            financial_years[account.fyend].status = DocumentStatus.FAILED
-            financial_years[account.fyend].status_notes = str(e)
-            financial_years[account.fyend].save()
+
+            financial_year.status = DocumentStatus.SUCCESS
+            financial_year.save()
+
+        except Exception as e:
+            financial_year.status = DocumentStatus.FAILED
+            financial_year.status_notes = str(e)
+            financial_year.save()
             logging.error(e)
             continue
 
     return documents
 
 
-def fetch_account(account, financial_year, session=None, tags=None, pause=10):
+def fetch_account(
+    account, financial_year, session=None, tags=None, pause=10, fail_if_exists=True
+):
     if session is None:
         session = HTMLSession()
 
     # get the document (fails after saving the tags if the document already exists)
-    document = get_document(financial_year, tags=tags)
+    document, created = Document.objects.get_or_create(
+        financial_year=financial_year,
+        defaults={
+            "created_at": timezone.now(),
+            "updated_at": timezone.now(),
+        },
+    )
+
+    # add tags to the document
+    if tags:
+        for tag in tags:
+            if isinstance(tag, str):
+                tag, _ = Tag.objects.get_or_create(
+                    slug=Tag._meta.get_field("slug").slugify(tag)
+                )
+            document.tags.add(tag)
+
+    # if the document already exists, return it
+    if not created and document.file and fail_if_exists:
+        logging.info(
+            "Document already exists for {} {} - replacing with new document".format(
+                financial_year.charity.org_id,
+                financial_year.financial_year_end,
+            )
+        )
+        return document
+
+    # if we're fetching the document then update the status
+    financial_year.status = DocumentStatus.PENDING
+    financial_year.save()
+
+    # Get the PDF
+    logging.info("Fetching {}".format(account.url))
+    try:
+        r = session.get(account.url)
+        r.raise_for_status()
+    except Exception as e:
+        raise CharityFetchError(e)
 
     # Pause to save the server
     if pause:
-        logging.debug("Pausing for {} seconds".format(pause))
+        logging.info("Pausing for {} seconds".format(pause))
         time.sleep(pause)
-
-    # Get the PDF
-    logging.debug("Fetching {}".format(account.url))
-    r = session.get(account.url)
-    pdf_file = ContentFile(r.content, name=f"{account.regno}-{account.fyend}.pdf")
+    pdf_file = ContentFile(r.content, name=financial_year.document_filename)
 
     # Save the PDF to the database
     document.file = pdf_file
     document.save()
+
+    # Convert the PDF to text
+    filedata = convert_file(pdf_file)
+    document.content = filedata["content"]
+    document.content_length = filedata["content_length"]
+    document.pages = filedata["pages"]
+    document.content_type = filedata["content_type"]
+    document.language = filedata["language"]
+    document.save()
+    logging.info(
+        "PDF file fetched pages: {:,.0f} size: {:,.0f}".format(
+            document.pages, document.content_length
+        )
+    )
+
+    # if there's no content then try and OCR the PDF
+    if document.content_length < settings.MIN_DOC_LENGTH:
+        new_file = do_document_ocr(document.file)
+        if new_file:
+            new_file = ContentFile(new_file, name=financial_year.document_filename)
+            document.file = new_file
+            document.save()
+            filedata = convert_file(new_file)
+            document.content = filedata["content"]
+            document.content_length = filedata["content_length"]
+            document.pages = filedata["pages"]
+            document.content_type = filedata["content_type"]
+            document.language = filedata["language"]
+            document.save()
+            logging.info(
+                "PDF file OCR pages: {:,.0f} size: {:,.0f}".format(
+                    document.pages, document.content_length
+                )
+            )
 
     logging.info(
         "Document {} created for {} {}".format(
             document.id, account.regno, account.fyend
         )
     )
+
     return document
 
 
@@ -174,142 +261,3 @@ def document_from_file(org_id, financial_year_end, filepath, tags=None):
 
     print("Document created for {} {}".format(org_id, financial_year_end))
     return document
-
-
-class CCEW:
-
-    name = "ccew"
-    url_base = "https://register-of-charities.charitycommission.gov.uk/charity-search/-/charity-details/{}/accounts-and-annual-returns"
-    date_regex = r"([0-9]{1,2} [A-Za-z]+ [0-9]{4})"
-
-    def _get_regno(self, regno):
-        return int(regno.lstrip("GB-CHC-"))
-
-    def get_charity_url(self, regno):
-        org_details = CCEWCharity.objects.get(
-            registered_charity_number=self._get_regno(regno), linked_charity_number=0
-        )
-        if not getattr(org_details, "organisation_number", None):
-            raise CharityFetchError("Charity {} not found".format(regno))
-        return self.url_base.format(org_details.organisation_number)
-
-    def list_accounts(self, regno: str, session=HTMLSession()) -> list:
-        """
-        List accounts for a charity
-        """
-        url = self.get_charity_url(regno)
-        logging.debug("Fetching account list: {}".format(url))
-
-        r = session.get(url)
-        r.raise_for_status()
-        accounts = []
-        for tr in r.html.find("tr.govuk-table__row"):
-            cells = list(tr.find("td"))
-            cell_text = [c.text.strip() if c.text else "" for c in cells]
-            if not cell_text or "accounts" not in cell_text[0].lower():
-                continue
-            if not cells[-1].find("a"):
-                continue
-            date_string = re.match(self.date_regex, cell_text[1])
-            if date_string:
-                accounts.append(
-                    Account(
-                        regno=regno,
-                        url=cells[-1].find("a", first=True).attrs["href"],
-                        fyend=dateutil.parser.parse(date_string.group()).date(),
-                    )
-                )
-        return sorted(accounts, key=lambda x: x.fyend, reverse=True)
-
-
-class CCNI:
-
-    name = "ccni"
-    url_base = (
-        "https://www.charitycommissionni.org.uk/charity-details/?regId={}&subId=0"
-    )
-    date_regex = r"([0-9]{1,2} [A-Za-z]+ [0-9]{4})"
-    account_url_regex = r"https://apps.charitycommission.gov.uk/ccni_ar_attachments/([0-9]+)_([0-9]+)_CA.pdf"
-
-    def _get_regno(self, regno):
-        return regno.lstrip("GB-NIC-").lstrip("NI")
-
-    def get_charity_url(self, regno):
-        return self.url_base.format(self._get_regno(regno))
-
-    def list_accounts(self, regno: str, session=HTMLSession()) -> list:
-        """
-        List accounts for a charity
-        """
-        url = self.get_charity_url(regno)
-        logging.debug("Fetching account list: {}".format(url))
-
-        r = session.get(url)
-        accounts = []
-        for link in r.html.find("article#documents a"):
-            if not link.attrs["href"].endswith("_CA.pdf"):
-                continue
-            match = re.match(self.account_url_regex, link.attrs["href"])
-            if not match:
-                continue
-            accounts.append(
-                Account(
-                    regno=match.group(1).lstrip("0"),
-                    url=link.attrs["href"],
-                    fyend=dateutil.parser.parse(match.group(2)).date(),
-                )
-            )
-        return sorted(accounts, key=lambda x: x.fyend, reverse=True)
-
-
-class OSCR:
-    name = "oscr"
-    url_base = "https://www.oscr.org.uk/about-charities/search-the-register/charity-details?number={}"
-
-    def _get_regno(self, regno):
-        return int(regno.lstrip("GB-SC-").lstrip("SC").lstrip("0"))
-
-    def get_charity_url(self, regno):
-        return self.url_base.format(self._get_regno(regno))
-
-    def list_accounts(self, regno: str, session=HTMLSession()) -> list:
-        """
-        List accounts for a charity
-        """
-        url = self.get_charity_url(regno)
-        logging.debug("Fetching account list: {}".format(url))
-
-        r = session.get(url)
-        accounts = []
-        for tr in r.html.find(".history table tr"):
-            cells = tr.find("td")
-            try:
-                fyend = dateutil.parser.parse(cells[0].text).date()
-            except dateutil.parser.ParserError:
-                continue
-            if len(cells) != 6:
-                continue
-            links = list(cells[5].absolute_links)
-            if not links or links[0] in (
-                "https://beta.companieshouse.gov.uk",
-                "https://www.gov.uk/government/organisations/charity-commission",
-            ):
-                continue
-            accounts.append(
-                Account(
-                    regno=regno,
-                    url=links[0],
-                    fyend=fyend,
-                )
-            )
-        return sorted(accounts, key=lambda x: x.fyend, reverse=True)
-
-
-def get_charity_type(regno):
-    if regno.startswith("SC") or regno.startswith("GB-SC-"):
-        return OSCR()
-    if regno.startswith("NI") or regno.startswith("GB-NIC-"):
-        return CCNI()
-    if regno.startswith("GB-CHC-"):
-        return CCEW()
-    return CCEW()

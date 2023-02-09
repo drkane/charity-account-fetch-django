@@ -19,19 +19,9 @@ from django_q.tasks import (
     result_group,
 )
 
+from documents.exceptions import CharityFetchError
+from documents.scrapers import get_charity_type
 from documents.utils import convert_file
-
-
-class Tag(models.Model):
-    name = models.CharField(max_length=50, verbose_name=_("Tag name"))
-    slug = AutoSlugField(populate_from="name", unique=True)
-
-    class Meta:
-        verbose_name = _("tag")
-        verbose_name_plural = _("tags")
-
-    def __str__(self):
-        return self.name
 
 
 class Regulators(models.TextChoices):
@@ -47,6 +37,18 @@ class DocumentStatus(models.TextChoices):
     PENDING = "PENDING", _("Document not yet fetched")
 
 
+class Tag(models.Model):
+    name = models.CharField(max_length=50, verbose_name=_("Tag name"))
+    slug = AutoSlugField(populate_from="name", unique=True)
+
+    class Meta:
+        verbose_name = _("tag")
+        verbose_name_plural = _("tags")
+
+    def __str__(self):
+        return self.name
+
+
 class Charity(models.Model):
 
     org_id = models.CharField(max_length=50, primary_key=True)
@@ -54,8 +56,8 @@ class Charity(models.Model):
         max_length=4, choices=Regulators.choices, default=Regulators.MAN
     )
     name = models.CharField(max_length=255, null=True, db_index=True)
-    date_registered = models.DateField(null=True)
-    date_removed = models.DateField(null=True)
+    date_registered = models.DateField(null=True, blank=True)
+    date_removed = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -169,35 +171,26 @@ class CharityFinancialYear(models.Model):
             "financial_year_end",
         )
 
+    @property
+    def document_filename(self):
+        org_id = self.charity.org_id.split("-")
+        return "{}-{}/Ends{}/{}-{}.pdf".format(
+            org_id[0],
+            org_id[1],
+            org_id[2][-2:],
+            "-".join(org_id),
+            self.financial_year_end.strftime("%Y-%m-%d"),
+        )
+
+    @property
+    def document(self):
+        return self.documents.first()
+
     def __str__(self):
         return "{} [{}]".format(
             to_titlecase(self.charity.name),
             self.financial_year_end,
         )
-
-    def save(self, *args, **kwargs):
-
-        if self.task_id:
-            task = Task.get_task(self.task_id)
-            if not task:
-                self.status = DocumentStatus.PENDING
-            elif task.success and task.result:
-                self.status = DocumentStatus.SUCCESS
-            else:
-                self.status = DocumentStatus.FAILED
-                self.status_notes = task.result
-
-        document = self.documents.first()
-        if document and document.content_length:
-            if document.content_length > settings.MIN_DOC_LENGTH:
-                self.status = DocumentStatus.SUCCESS
-            elif document.content_length > 0:
-                self.status = DocumentStatus.FAILED
-                self.status_notes = "Document too short"
-        if document and not document.content:
-            self.status = DocumentStatus.FAILED
-            self.status_notes = "No document found"
-        super().save(*args, **kwargs)
 
 
 class Document(models.Model):
@@ -234,51 +227,6 @@ class Document(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    def convert_file(self, file_obj, *args, **kwargs):
-        filedata = convert_file(file_obj)
-        self.file = file_obj
-        self.content = filedata["content"]
-        self.content_length = filedata["content_length"]
-        self.pages = filedata["pages"]
-        self.content_type = filedata["content_type"]
-        self.language = filedata["language"]
-        logging.debug(
-            "PDF file fetched pages: {:,.0f} size: {:,.0f}".format(
-                self.pages, self.content_length
-            )
-        )
-
-    def do_document_ocr(self, *args, **kwargs):
-        try:
-            buffer = io.BytesIO()
-            ocrmypdf.ocr(self.file, buffer, **settings.OCRMYPDF_OPTIONS)
-            logging.info("OCRing PDF")
-            pdf_file = ContentFile(
-                buffer.getvalue(),
-                name=f"{self.financial_year.org_id}-{self.financial_year.financial_year_end}.pdf",
-            )
-            self.convert_file(pdf_file)
-        except ocrmypdf.exceptions.PriorOcrFoundError:
-            logging.info("PDF already OCR'd")
-        except ocrmypdf.exceptions.EncryptedPdfError:
-            logging.info("PDF is encrypted")
-
-    def save(self, *args, **kwargs):
-        if not self.content and self.file:
-            self.convert_file(self.file)
-
-            # OCR the PDF if necessary
-            if self.content_length < settings.MIN_DOC_LENGTH:
-                self.do_document_ocr()
-
-        if not self.content_length and self.content:
-            self.content_length = len(self.content)
-
-        # save the financial year (resets the status)
-        self.financial_year.save()
-
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.financial_year.__str__()

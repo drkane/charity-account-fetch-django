@@ -41,7 +41,7 @@ certifi==2022.6.15
     #   requests
 cffi==1.15.1
     # via cryptography
-charity-django @ git+https://github.com/kanedata/charity-django.git
+charity_django @ git+https://github.com/kanedata/charity-django.git@v0.2
     # via -r requirements.in
 charset-normalizer==2.1.1
     # via

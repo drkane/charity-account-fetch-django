@@ -42,6 +42,7 @@ class Command(BaseCommand):
             options["org_id"],
             financial_year_end=options["financial_year_end"],
             tags=tags,
+            fail_if_exists=False,
         )
         for doc in docs:
             self.stdout.write(self.style.SUCCESS(f"Document {doc.id} created"))
