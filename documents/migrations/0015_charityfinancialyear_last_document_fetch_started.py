@@ -17,7 +17,7 @@ def update_last_fetch_started(apps, schema_editor):
             fy.save()
         elif fy.task_id:
             task = Task.objects.get(id=fy.task_id)
-            if task.started:
+            if task and task.started:
                 fy.last_document_fetch_started = task.started
             fy.save()
 
