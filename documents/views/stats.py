@@ -136,9 +136,14 @@ def stats_index(request):
                 "Latest FYE": d["latest_fy"],
                 "Largest income": d["biggest"],
                 "Smallest income": d["smallest"],
-                "With content %": d["has_content"]
-                / attempts.get(d["created_at__date"], 0),
-                "With file %": d["has_file"] / attempts.get(d["created_at__date"], 0),
+                "With content %": (
+                    d["has_content"] / attempts.get(d["created_at__date"], 0)
+                )
+                if attempts.get(d["created_at__date"], 0)
+                else 0,
+                "With file %": (d["has_file"] / attempts.get(d["created_at__date"], 0))
+                if attempts.get(d["created_at__date"], 0)
+                else 0,
                 "Failed tasks": failures.get(d["created_at__date"], 0),
             }
             for d in recently_fetched
