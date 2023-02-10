@@ -19,7 +19,7 @@ def update_last_fetch_started(apps, schema_editor):
             task = Task.objects.get(id=fy.task_id)
             if task and task.started:
                 fy.last_document_fetch_started = task.started
-            fy.save()
+                fy.save()
 
 
 class Migration(migrations.Migration):
