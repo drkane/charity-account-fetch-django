@@ -140,10 +140,27 @@ def stats_index(request):
             fyears=financial_years,
             recently_fetched=recently_fetched,
             queue_stats={
-                "in_queue": Schedule.objects.count(),
-                "in_queue_today": Schedule.objects.filter(next_run__date=today).count(),
-                "failed": Failure.objects.filter(stopped__date=today).count(),
-                "success": Success.objects.count(),
+                "in_queue": {
+                    "today": OrmQ.objects.filter(lock__date=today).count(),
+                    "yesterday": OrmQ.objects.filter(
+                        lock__date=today - datetime.timedelta(days=1)
+                    ).count(),
+                    "all_time": OrmQ.objects.count(),
+                },
+                "failed": {
+                    "today": Failure.objects.filter(stopped__date=today).count(),
+                    "yesterday": Failure.objects.filter(
+                        stopped__date=today - datetime.timedelta(days=1)
+                    ).count(),
+                    "all_time": Failure.objects.count(),
+                },
+                "success": {
+                    "today": Success.objects.filter(stopped__date=today).count(),
+                    "yesterday": Success.objects.filter(
+                        stopped__date=today - datetime.timedelta(days=1)
+                    ).count(),
+                    "all_time": Success.objects.count(),
+                },
             },
         ),
     )

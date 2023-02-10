@@ -67,11 +67,33 @@
     {% if clusters or queue_stats %}
     <h2 class="">Queue stats</h2>
     <table class="table collapse f5 mv4">
+        <thead>
+            <tr>
+                <th class="bb bw1 b--light-gray tl pa2"></th>
+                <th class="bb bw1 b--light-gray tr pa2">Today</th>
+                <th class="bb bw1 b--light-gray tr pa2">Yesterday</th>
+                <th class="bb bw1 b--light-gray tr pa2">All time</th>
+            </tr>
+        </thead>
     <tbody>
-        <tr><th class="tr pa2">In queue:</th><td class="tr pa2">{{ "{:,.0f}".format(queue_stats.in_queue) }}</td></tr>
-        <tr><th class="tr pa2">In queue (started today):</th><td class="tr pa2">{{ "{:,.0f}".format(queue_stats.in_queue_today) }}</td></tr>
-        <tr><th class="tr pa2">Failed tasks (today):</th><td class="tr pa2">{{ "{:,.0f}".format(queue_stats.failed) }}</td></tr>
-        <tr><th class="tr pa2">Successful tasks (maximum of 250):</th><td class="tr pa2">{{ "{:,.0f}".format(queue_stats.success) }}</td></tr>
+        <tr>
+            <th class="tr pa2 v-top">Tasks in queue</th>
+            <td class="tr pa2 v-top">{{ "{:,.0f}".format(queue_stats.in_queue.today) }}</td>
+            <td class="tr pa2 v-top">{{ "{:,.0f}".format(queue_stats.in_queue.yesterday) }}</td>
+            <td class="tr pa2 v-top">{{ "{:,.0f}".format(queue_stats.in_queue.all_time) }}</td>
+        </tr>
+        <tr>
+            <th class="tr pa2 v-top">Failed tasks</th>
+            <td class="tr pa2 v-top">{{ "{:,.0f}".format(queue_stats.failed.today) }}</td>
+            <td class="tr pa2 v-top">{{ "{:,.0f}".format(queue_stats.failed.yesterday) }}</td>
+            <td class="tr pa2 v-top">{{ "{:,.0f}".format(queue_stats.failed.all_time) }}</td>
+        </tr>
+        <tr>
+            <th class="tr pa2 v-top">Successful tasks<br><span class="normal grey f6">(maximum of 250)</span></th>
+            <td class="tr pa2 v-top">{{ "{:,.0f}".format(queue_stats.success.today) }}</td>
+            <td class="tr pa2 v-top">{{ "{:,.0f}".format(queue_stats.success.yesterday) }}</td>
+            <td class="tr pa2 v-top">{{ "{:,.0f}".format(queue_stats.success.all_time) }}</td>
+        </tr>
     </tbody>
     </table>
     {% if clusters %}
