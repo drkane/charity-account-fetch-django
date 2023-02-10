@@ -1,27 +1,11 @@
-import io
-import logging
 import uuid
 
-import ocrmypdf
 from autoslug import AutoSlugField
 from charity_django.utils.text import to_titlecase
-from django.conf import settings
-from django.core.files.base import ContentFile
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django_q.tasks import (
-    Iter,
-    Task,
-    async_task,
-    count_group,
-    fetch_group,
-    result_group,
-)
-
-from documents.exceptions import CharityFetchError
-from documents.scrapers import get_charity_type
-from documents.utils import convert_file
+from django_q.tasks import Task, count_group, fetch_group
 
 
 class Regulators(models.TextChoices):

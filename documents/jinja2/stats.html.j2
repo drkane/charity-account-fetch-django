@@ -1,6 +1,69 @@
 {% extends "base.html.j2" %}
 {% block content %}
-    <h2 class="ma0 pa0">Queue stats</h2>
+    {% if fyears %}
+    <h2 class="">Accounts available stats</h2>
+    <table class="table collapse f5">
+    {% for financial_year in fyears %}
+        {% if loop.first %}
+        <thead>
+        <tr>
+            {% for title, value in financial_year.items() %}
+            <th class="bb bw1 b--light-gray tl pa2">{{ title }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% endif %}
+        <tr>
+            {% for title, value in financial_year.items() %}
+            {% if not value %}
+            <td class="tr pa2 bb b--light-gray">-</td>
+            {% elif title == "Year" %}
+            <th class="tl pa2 bb b--light-gray">{{ value }}</th>
+            {% elif title.lower().endswith("%") %}
+            <td class="tr pa2 bb b--light-gray">{{ "{:,.1%}".format(value) }}</td>
+            {% else %}
+            <td class="tr pa2 bb b--light-gray">{{ "{:,.0f}".format(value) }}</td>
+            {% endif %}
+            {% endfor %}
+        </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    {% if recently_fetched %}
+    <h2 class="">Recently fetched data</h2>
+    <table class="table collapse f5">
+    {% for financial_year in recently_fetched %}
+        {% if loop.first %}
+        <thead>
+        <tr>
+            {% for title, value in financial_year.items() %}
+            <th class="bb bw1 b--light-gray tl pa2">{{ title }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% endif %}
+        <tr>
+            {% for title, value in financial_year.items() %}
+            {% if not value %}
+            <td class="tr pa2 bb b--light-gray">-</td>
+            {% elif title == "Date" %}
+            <th class="tl pa2 bb b--light-gray">{{ value|naturalday|title }}</th>
+            {% elif title.lower().endswith("%") %}
+            <td class="tr pa2 bb b--light-gray">{{ "{:,.1%}".format(value) }}</td>
+            {% else %}
+            <td class="tr pa2 bb b--light-gray">{{ "{:,.0f}".format(value) }}</td>
+            {% endif %}
+            {% endfor %}
+        </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    {% if clusters %}
+    <h2 class="">Queue stats</h2>
     <table class="table collapse w-100 f5">
         <thead>
             <tr>
@@ -35,4 +98,5 @@
     {% endfor %}
         </tbody>
     </table>
+    {% endif %}
 {% endblock content %}

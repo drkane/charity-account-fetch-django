@@ -5,7 +5,6 @@ import logging
 import ocrmypdf
 import pdfplumber
 from django.conf import settings
-from django.core.files.base import ContentFile
 
 from documents.exceptions import DocumentUploadError
 

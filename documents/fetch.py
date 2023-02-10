@@ -1,27 +1,22 @@
-import io
 import logging
-import re
 import time
 
-import ocrmypdf
 import requests_cache
-from charity_django.ccew.models import Charity as CCEWCharity
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from pdfminer.pdfparser import PDFSyntaxError
 from requests_html import HTMLSession
 
-from documents.exceptions import DocAlreadyExists
+from documents.exceptions import CharityFetchError, DocAlreadyExists
 from documents.models import (
     Charity,
-    CharityFetchError,
     CharityFinancialYear,
     Document,
     DocumentStatus,
     Tag,
 )
-from documents.scrapers import Account, get_charity_type
+from documents.scrapers import get_charity_type
 from documents.utils import convert_file, do_document_ocr
 
 requests_cache.install_cache("demo_cache")
@@ -193,12 +188,20 @@ def fetch_account(
     pdf_file = ContentFile(r.content, name=financial_year.document_filename)
 
     # Save the PDF to the database
+    logging.info("Saving PDF file {}".format(financial_year.document_filename))
     document.file = pdf_file
     document.save()
 
     # Convert the PDF to text
+    logging.info(
+        "Getting text from PDF file {}".format(financial_year.document_filename)
+    )
     filedata = convert_file(pdf_file)
     document.content = filedata["content"]
+    document.file_text = ContentFile(
+        filedata["content"].encode("utf-8"),
+        name=financial_year.document_filename.replace(".pdf", ".txt"),
+    )
     document.content_length = filedata["content_length"]
     document.pages = filedata["pages"]
     document.content_type = filedata["content_type"]
@@ -219,6 +222,10 @@ def fetch_account(
             document.save()
             filedata = convert_file(new_file)
             document.content = filedata["content"]
+            document.file_text = ContentFile(
+                filedata["content"].encode("utf-8"),
+                name=financial_year.document_filename.replace("pdf", "txt"),
+            )
             document.content_length = filedata["content_length"]
             document.pages = filedata["pages"]
             document.content_type = filedata["content_type"]
