@@ -2,7 +2,7 @@
 {% block content %}
     {% if fyears %}
     <h2 class="">Accounts available stats</h2>
-    <table class="table collapse f5">
+    <table class="table collapse f5 mb5">
     {% for financial_year in fyears %}
         {% if loop.first %}
         <thead>
@@ -33,7 +33,7 @@
     {% endif %}
     {% if recently_fetched %}
     <h2 class="">Recently fetched data</h2>
-    <table class="table collapse f5">
+    <table class="table collapse f5 mb5">
     {% for financial_year in recently_fetched %}
         {% if loop.first %}
         <thead>
@@ -64,8 +64,17 @@
         </tbody>
     </table>
     {% endif %}
-    {% if clusters %}
+    {% if clusters or queue_stats %}
     <h2 class="">Queue stats</h2>
+    <table class="table collapse f5 mv4">
+    <tbody>
+        <tr><th class="tr pa2">In queue:</th><td class="tr pa2">{{ "{:,.0f}".format(queue_stats.in_queue) }}</td></tr>
+        <tr><th class="tr pa2">In queue (started today):</th><td class="tr pa2">{{ "{:,.0f}".format(queue_stats.in_queue_today) }}</td></tr>
+        <tr><th class="tr pa2">Failed tasks (today):</th><td class="tr pa2">{{ "{:,.0f}".format(queue_stats.failed) }}</td></tr>
+        <tr><th class="tr pa2">Successful tasks (maximum of 250):</th><td class="tr pa2">{{ "{:,.0f}".format(queue_stats.success) }}</td></tr>
+    </tbody>
+    </table>
+    {% if clusters %}
     <table class="table collapse w-100 f5">
         <thead>
             <tr>
@@ -100,5 +109,6 @@
     {% endfor %}
         </tbody>
     </table>
+    {% endif %}
     {% endif %}
 {% endblock content %}

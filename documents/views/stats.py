@@ -3,6 +3,8 @@ import datetime
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Max, Min, Q
 from django.shortcuts import render
+from django.utils import timezone
+from django_q.models import Failure, OrmQ, Schedule, Success
 from django_q.monitor import Stat
 
 from documents.models import CharityFinancialYear, Document, DocumentStatus
@@ -10,6 +12,8 @@ from documents.models import CharityFinancialYear, Document, DocumentStatus
 
 @login_required
 def stats_index(request):
+
+    today = timezone.now().date()
 
     income_bands = [
         # ("under_25k", 0, 25_000),
@@ -80,10 +84,10 @@ def stats_index(request):
         for fy in financial_years
     ]
 
-    days_ago_14 = datetime.datetime.now() - datetime.timedelta(days=14)
+    days_ago_14 = today - datetime.timedelta(days=14)
     recently_fetched = (
-        Document.objects.filter(created_at__gte=days_ago_14)
-        .values("created_at__year", "created_at__month", "created_at__day")
+        Document.objects.filter(created_at__date__gte=days_ago_14)
+        .values("created_at__date")
         .annotate(
             documents=Count("id"),
             has_content=Count("id", filter=Q(content__isnull=False)),
@@ -98,12 +102,20 @@ def stats_index(request):
             smallest=Min("financial_year__income", filter=Q(content__isnull=False)),
         )
     )
+    # failed tasks by date
+    failures = {
+        f["started__date"]: f["failed_tasks"]
+        for f in Failure.objects.filter(started__date__gte=days_ago_14)
+        .values("started__date")
+        .annotate(
+            failed_tasks=Count("id"),
+        )
+    }
+
     recently_fetched = sorted(
         [
             {
-                "Date": datetime.date(
-                    d["created_at__year"], d["created_at__month"], d["created_at__day"]
-                ),
+                "Date": d["created_at__date"],
                 "Documents fetched": d["documents"],
                 "Has content": d["has_content"],
                 "Has file": d["has_file"],
@@ -113,6 +125,7 @@ def stats_index(request):
                 "Smallest income": d["smallest"],
                 "With content %": d["has_content"] / d["documents"],
                 "With file %": d["has_file"] / d["documents"],
+                "Failed tasks": failures.get(d["created_at__date"], 0),
             }
             for d in recently_fetched
         ],
@@ -126,5 +139,11 @@ def stats_index(request):
             clusters=Stat.get_all(),
             fyears=financial_years,
             recently_fetched=recently_fetched,
+            queue_stats={
+                "in_queue": Schedule.objects.count(),
+                "in_queue_today": Schedule.objects.filter(next_run__date=today).count(),
+                "failed": Failure.objects.filter(stopped__date=today).count(),
+                "success": Success.objects.count(),
+            },
         ),
     )
