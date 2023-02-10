@@ -1,7 +1,7 @@
 import datetime
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Min, Q
 from django.shortcuts import render
 from django_q.monitor import Stat
 
@@ -88,21 +88,36 @@ def stats_index(request):
             documents=Count("id"),
             has_content=Count("id", filter=Q(content__isnull=False)),
             has_file=Count("id", filter=Q(file__isnull=False)),
+            earliest_fy=Min(
+                "financial_year__financial_year_end", filter=Q(content__isnull=False)
+            ),
+            latest_fy=Max(
+                "financial_year__financial_year_end", filter=Q(content__isnull=False)
+            ),
+            biggest=Max("financial_year__income", filter=Q(content__isnull=False)),
+            smallest=Min("financial_year__income", filter=Q(content__isnull=False)),
         )
     )
-    recently_fetched = [
-        {
-            "Date": datetime.date(
-                d["created_at__year"], d["created_at__month"], d["created_at__day"]
-            ),
-            "Documents fetched": d["documents"],
-            "Has content": d["has_content"],
-            "Has file": d["has_file"],
-            "With content %": d["has_content"] / d["documents"],
-            "With file %": d["has_file"] / d["documents"],
-        }
-        for d in recently_fetched
-    ]
+    recently_fetched = sorted(
+        [
+            {
+                "Date": datetime.date(
+                    d["created_at__year"], d["created_at__month"], d["created_at__day"]
+                ),
+                "Documents fetched": d["documents"],
+                "Has content": d["has_content"],
+                "Has file": d["has_file"],
+                "Earliest FYE": d["earliest_fy"],
+                "Latest FYE": d["latest_fy"],
+                "Largest income": d["biggest"],
+                "Smallest income": d["smallest"],
+                "With content %": d["has_content"] / d["documents"],
+                "With file %": d["has_file"] / d["documents"],
+            }
+            for d in recently_fetched
+        ],
+        key=lambda d: d["Date"],
+    )[::-1]
 
     return render(
         request,

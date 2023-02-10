@@ -53,8 +53,10 @@
             <th class="tl pa2 bb b--light-gray">{{ value|naturalday|title }}</th>
             {% elif title.lower().endswith("%") %}
             <td class="tr pa2 bb b--light-gray">{{ "{:,.1%}".format(value) }}</td>
-            {% else %}
+            {% elif value is number %}
             <td class="tr pa2 bb b--light-gray">{{ "{:,.0f}".format(value) }}</td>
+            {% else %}
+            <td class="tr pa2 bb b--light-gray">{{ value }}</td>
             {% endif %}
             {% endfor %}
         </tr>
