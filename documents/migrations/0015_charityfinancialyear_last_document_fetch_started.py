@@ -34,5 +34,5 @@ class Migration(migrations.Migration):
             name="last_document_fetch_started",
             field=models.DateTimeField(blank=True, null=True),
         ),
-        migrations.RunPython(update_last_fetch_started, migrations.RunPython.noop),
+        # migrations.RunPython(update_last_fetch_started, migrations.RunPython.noop),
     ]
