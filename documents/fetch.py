@@ -171,6 +171,7 @@ def fetch_account(
 
     # if we're fetching the document then update the status
     financial_year.status = DocumentStatus.PENDING
+    financial_year.last_document_fetch_started = timezone.now()
     financial_year.save()
 
     # Get the PDF

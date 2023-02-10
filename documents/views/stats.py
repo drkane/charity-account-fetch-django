@@ -112,10 +112,23 @@ def stats_index(request):
         )
     }
 
+    # attempted tasks by date
+    attempts = {
+        f["last_document_fetch_started__date"]: f["attempted_tasks"]
+        for f in CharityFinancialYear.objects.filter(
+            last_document_fetch_started__date__gte=days_ago_14
+        )
+        .values("last_document_fetch_started__date")
+        .annotate(
+            attempted_tasks=Count("id"),
+        )
+    }
+
     recently_fetched = sorted(
         [
             {
                 "Date": d["created_at__date"],
+                "Documents attempted": attempts.get(d["created_at__date"], 0),
                 "Documents fetched": d["documents"],
                 "Has content": d["has_content"],
                 "Has file": d["has_file"],
@@ -123,8 +136,9 @@ def stats_index(request):
                 "Latest FYE": d["latest_fy"],
                 "Largest income": d["biggest"],
                 "Smallest income": d["smallest"],
-                "With content %": d["has_content"] / d["documents"],
-                "With file %": d["has_file"] / d["documents"],
+                "With content %": d["has_content"]
+                / attempts.get(d["created_at__date"], 0),
+                "With file %": d["has_file"] / attempts.get(d["created_at__date"], 0),
                 "Failed tasks": failures.get(d["created_at__date"], 0),
             }
             for d in recently_fetched

@@ -131,6 +131,7 @@ class CharityFinancialYear(models.Model):
     document_submitted = models.DateField(blank=True, null=True)
     income = models.BigIntegerField(blank=True, null=True)
     expenditure = models.BigIntegerField(blank=True, null=True)
+    last_document_fetch_started = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(
