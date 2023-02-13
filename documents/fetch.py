@@ -99,6 +99,7 @@ def fetch_documents_for_charity(
         for financial_year in financial_years.values():
             financial_year.status = DocumentStatus.FAILED
             financial_year.status_notes = "Accounts not found"
+            financial_year.last_document_fetch_started = timezone.now()
             financial_year.save()
         return []
     logging.info(
@@ -123,11 +124,13 @@ def fetch_documents_for_charity(
             )
 
             financial_year.status = DocumentStatus.SUCCESS
+            financial_year.last_document_fetch_started = timezone.now()
             financial_year.save()
 
         except Exception as e:
             financial_year.status = DocumentStatus.FAILED
             financial_year.status_notes = str(e)
+            financial_year.last_document_fetch_started = timezone.now()
             financial_year.save()
             logging.error(e)
             continue
