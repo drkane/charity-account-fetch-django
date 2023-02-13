@@ -2,6 +2,7 @@ from datetime import date as Date
 
 from django.core.management.base import BaseCommand
 from django.db.models import F
+from django.utils import timezone
 from django_q.tasks import async_task
 
 from documents.fetch import fetch_documents_for_charity
@@ -61,6 +62,7 @@ class Command(BaseCommand):
             )
             record.task_id = task_id
             record.status = DocumentStatus.PENDING
+            record.last_document_fetch_started = timezone.now()
             record.task_groups.add(task_group)
             record.save()
             self.stdout.write(
