@@ -2,9 +2,10 @@
 {% extends "base.html.j2" %}
 {% block content %}
     <ul class="list ma0 pa0 f4">
+        {% if elasticsearch_working %}
         <li class="mb4 db">
             <h3 class="ma0 pa0">
-                <a href="{{url_for('doc.doc_search')}}" class="link underline-hover near-black strike">
+                <a href="{{url_for('doc.doc_search')}}" class="link underline-hover near-black">
                     Search in documents
                 </a>
             </h3>
@@ -35,9 +36,10 @@
             </ul>
         </li>
         {% endif %}
+        {% endif %}
         <li class="mb5 db">
             <h3 class="">
-                <a href="{{url_for('charity.charity_search')}}" class="link underline-hover near-black strike">
+                <a href="{{url_for('charity.charity_search')}}" class="link underline-hover near-black">
                     Search charities
                 </a>
             </h3>
@@ -51,8 +53,9 @@
                 Admin tasks
             </h3>
             <ul>
-                <li><a href="{{url_for('doc.doc_upload_bulk')}}" class="link dark-blue underline-hover">Bulk upload tool</a></li>
-                <li><a href="{{url_for('admin:app_list', args=('documents'))}}" class="link dark-blue underline-hover">Django admin</a></li>
+                {# <li><a href="{{url_for('doc.doc_upload_bulk')}}" class="link dark-blue underline-hover">Bulk upload tool</a></li> #}
+                <li><a href="{{url_for('stats.stats_index')}}" class="link dark-blue underline-hover">Stats</a></li>
+                <li><a href="{{url_for('admin:index')}}" class="link dark-blue underline-hover">Django admin</a></li>
                 <li><a href="{{url_for('logout')}}" class="link dark-blue underline-hover">Log out</a></li>
             </ul>
         </li>

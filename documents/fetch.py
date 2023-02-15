@@ -90,15 +90,20 @@ def fetch_documents_for_charity(
     )
 
     scraper = get_charity_type(charity.org_id)
+    all_accounts = [
+        account for account in scraper.list_accounts(charity.org_id, session)
+    ]
     accounts = [
-        account
-        for account in scraper.list_accounts(charity.org_id, session)
-        if account.fyend in financial_years.keys()
+        account for account in all_accounts if account.fyend in financial_years.keys()
     ]
     if not accounts:
         for financial_year in financial_years.values():
             financial_year.status = DocumentStatus.FAILED
-            financial_year.status_notes = "Accounts not found"
+            financial_year.status_notes = (
+                "Accounts not found. Available accounts: {}".format(
+                    ", ".join([str(a.fyend) for a in all_accounts])
+                )
+            )
             financial_year.last_document_fetch_started = timezone.now()
             financial_year.save()
         return []
