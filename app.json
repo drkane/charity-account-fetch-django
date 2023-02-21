@@ -25,7 +25,7 @@
             "schedule": "56 2 * * 6"
         },
         {
-            "command": "python ./manage.py queue_latest_documents -n 4000 &>> /var/log/dokku/apps/charity-account-fetch/queue_latest_documents.log",
+            "command": "python ./manage.py queue_latest_documents -n 6000 -p 15 &>> /var/log/dokku/apps/charity-account-fetch/queue_latest_documents.log",
             "schedule": "3 1 * * *"
         }
     ]

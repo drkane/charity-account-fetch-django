@@ -26,6 +26,13 @@ class Command(BaseCommand):
             help="Number of documents to fetch",
         )
         parser.add_argument(
+            "--pause",
+            "-p",
+            type=int,
+            default=10,
+            help="Seconds to pause after document is fetched",
+        )
+        parser.add_argument(
             "--earliest",
             "-e",
             type=Date,
@@ -35,6 +42,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         n = min(options["number"], 10_000)
+        pause = min(options["pause"], 10)
 
         task_group = FetchGroup.objects.create()
 
@@ -59,6 +67,7 @@ class Command(BaseCommand):
                 record.charity.org_id,
                 record.financial_year_end,
                 group=task_group.id,
+                pause=pause,
             )
             record.task_id = task_id
             record.status = DocumentStatus.PENDING
