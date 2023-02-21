@@ -42,7 +42,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         n = min(options["number"], 10_000)
-        pause = min(options["pause"], 10)
 
         task_group = FetchGroup.objects.create()
 
@@ -67,7 +66,7 @@ class Command(BaseCommand):
                 record.charity.org_id,
                 record.financial_year_end,
                 group=task_group.id,
-                pause=pause,
+                pause=options["pause"],
             )
             record.task_id = task_id
             record.status = DocumentStatus.PENDING
