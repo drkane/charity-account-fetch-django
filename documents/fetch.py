@@ -5,7 +5,6 @@ import requests_cache
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.utils import timezone
-from pdfminer.pdfparser import PDFSyntaxError
 from requests_html import HTMLSession
 
 from documents.exceptions import CharityFetchError, DocAlreadyExists
@@ -64,7 +63,6 @@ def fetch_documents_for_charity(
     pause=10,
     fail_if_exists=True,
 ):
-
     if session is None:
         session = HTMLSession()
 

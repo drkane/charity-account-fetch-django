@@ -12,7 +12,6 @@ Account = namedtuple("Account", ["url", "fyend", "regno", "size"], defaults=[Non
 
 
 class CCEW:
-
     name = "ccew"
     url_base = "https://register-of-charities.charitycommission.gov.uk/charity-search/-/charity-details/{}/accounts-and-annual-returns"
     date_regex = r"([0-9]{1,2} [A-Za-z]+ [0-9]{4})"
@@ -38,6 +37,7 @@ class CCEW:
         r = session.get(url)
         r.raise_for_status()
         accounts = []
+        r.html.render()
         for tr in r.html.find("tr.govuk-table__row"):
             cells = list(tr.find("td"))
             cell_text = [c.text.strip() if c.text else "" for c in cells]
@@ -58,7 +58,6 @@ class CCEW:
 
 
 class CCNI:
-
     name = "ccni"
     url_base = (
         "https://www.charitycommissionni.org.uk/charity-details/?regId={}&subId=0"
