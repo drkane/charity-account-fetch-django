@@ -47,7 +47,8 @@ def get_document(financial_year, tags=None, fail_if_exists=True):
             )
         else:
             logging.info(
-                "Document already exists for {} {} - replacing with new document".format(
+                "Document already exists for {} {}"
+                " - replacing with new document".format(
                     financial_year.charity.org_id,
                     financial_year.financial_year_end,
                 )
