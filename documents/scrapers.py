@@ -37,7 +37,7 @@ class CCEW:
         r = session.get(url)
         r.raise_for_status()
         accounts = []
-        r.html.render()
+
         for tr in r.html.find("tr.govuk-table__row"):
             cells = list(tr.find("td"))
             cell_text = [c.text.strip() if c.text else "" for c in cells]
