@@ -25,8 +25,12 @@
             "schedule": "56 2 * * 6"
         },
         {
-            "command": "python ./manage.py queue_latest_documents -n 6000 -p 15",
+            "command": "python ./manage.py queue_latest_documents -n 10000 -p 15",
             "schedule": "3 1 * * *"
+        },
+        {
+            "command": "python ./manage.py reset_failed_accounts",
+            "schedule": "56 0 * * 2"
         }
     ]
 }

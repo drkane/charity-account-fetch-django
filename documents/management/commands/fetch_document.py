@@ -1,7 +1,6 @@
 import datetime
 
 from django.core.management.base import BaseCommand
-from django_q.tasks import async_task
 
 from documents.fetch import fetch_documents_for_charity
 from documents.models import Tag

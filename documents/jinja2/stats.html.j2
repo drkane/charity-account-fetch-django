@@ -1,52 +1,96 @@
 {% extends "base.html.j2" %}
 {% block content %}
+<div class="cf w-100">
     {% if fyears %}
-    <h2 class="">Accounts available stats</h2>
-    <div class="overflow-y-scroll">
-        <table class="table collapse f5 mb5">
-        {% for financial_year in fyears %}
-            {% if loop.first %}
-            <thead>
-            <tr>
-                {% for title, value in financial_year.items() %}
-                <th class="bb bw1 b--light-gray tl pa2">{{ title }}</th>
-                {% endfor %}
-            </tr>
-            </thead>
-            <tbody>
-            {% endif %}
-            <tr>
-                {% for title, value in financial_year.items() %}
-                {% if not value %}
-                <td class="tr pa2 bb b--light-gray">-</td>
-                {% elif title == "Year" %}
-                <th class="tl pa2 bb b--light-gray">{{ value }}</th>
-                {% elif title.lower().endswith("%") %}
-                <td class="tr pa2 bb b--light-gray">{{ "{:,.1%}".format(value) }}</td>
-                {% else %}
-                <td class="tr pa2 bb b--light-gray">{{ "{:,.0f}".format(value) }}</td>
-                {% endif %}
-                {% endfor %}
-            </tr>
-        {% endfor %}
-            </tbody>
-        </table>
+    <div class="fl w-100 w-60-ns pr3">
+        <h2 class="">Accounts available stats</h2>
+        <p>Showing Charity Commission for England and Wales only</p>
+        <div class="overflow-y-scroll">
+            <table class="table collapse f5 mb5" style="min-width: 100%;">
+                {% for financial_year in fyears %}
+                {% if loop.first %}
+                <thead>
+                    <tr>
+                        {% for title, value in financial_year.items() %}
+                        <th class="bb bw1 b--light-gray {% if loop.first %}tl{% else %}tr{% endif %} pa2">{{ title }}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% endif %}
+                    <tr>
+                        {% for title, value in financial_year.items() %}
+                        {% if not value %}
+                        <td class="tr pa2 bb b--light-gray">-</td>
+                        {% elif title == "Year" %}
+                        <th class="tl pa2 bb b--light-gray">{{ value }}</th>
+                        {% elif title.lower().endswith("%") %}
+                        <td class="tr pa2 bb b--light-gray">{{ "{:,.1%}".format(value) }}</td>
+                        {% else %}
+                        <td class="tr pa2 bb b--light-gray">{{ "{:,.0f}".format(value) }}</td>
+                        {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
     {% endif %}
-    {% if recently_fetched %}
-    <h2 class="">Recently fetched data</h2>
-    <div class="overflow-y-scroll">
-        <table class="table collapse f5 mb5">
+    {% if fyear_bands %}
+    <div class="fl w-100 w-40-ns pl3">
+        <h2 class="">Success by income band</h2>
+        <div class="overflow-y-scroll">
+            <table class="table collapse f5 mb5" style="min-width: 100%;">
+                {% for financial_year in fyear_bands %}
+                {% if loop.first %}
+                <thead>
+                    <tr>
+                        {% for title, value in financial_year.items() %}
+                        <th class="bb bw1 b--light-gray {% if loop.first %}tl{% else %}tr{% endif %} pa2">{{ title }}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% endif %}
+                    <tr>
+                        {% for title, value in financial_year.items() %}
+                        {% if not value %}
+                        <td class="tr pa2 bb b--light-gray">-</td>
+                        {% elif title == "Year" %}
+                        <th class="tl pa2 bb b--light-gray">{{ value }}</th>
+                        {% elif value is string %}
+                        <td class="tr pa2 bb b--light-gray">{{ value|safe }}</td>
+                        {% elif title.lower().endswith("%") %}
+                        <td class="tr pa2 bb b--light-gray">{{ "{:,.1%}".format(value) }}</td>
+                        {% else %}
+                        <td class="tr pa2 bb b--light-gray">{{ "{:,.0f}".format(value) }}</td>
+                        {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% if recently_fetched %}
+<h2 class="">Recently fetched data</h2>
+<div class="overflow-y-scroll">
+    <table class="table collapse f5 mb5">
         {% for financial_year in recently_fetched %}
-            {% if loop.first %}
-            <thead>
+        {% if loop.first %}
+        <thead>
             <tr>
                 {% for title, value in financial_year.items() %}
                 <th class="bb bw1 b--light-gray tl pa2">{{ title }}</th>
                 {% endfor %}
             </tr>
-            </thead>
-            <tbody>
+        </thead>
+        <tbody>
             {% endif %}
             <tr>
                 {% for title, value in financial_year.items() %}
@@ -63,22 +107,22 @@
                 {% endif %}
                 {% endfor %}
             </tr>
-        {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-    {% if clusters or queue_stats %}
-    <h2 class="">Queue stats</h2>
-    <table class="table collapse f5 mv4">
-        <thead>
-            <tr>
-                <th class="bb bw1 b--light-gray tl pa2"></th>
-                <th class="bb bw1 b--light-gray tr pa2">Today</th>
-                <th class="bb bw1 b--light-gray tr pa2">Yesterday</th>
-                <th class="bb bw1 b--light-gray tr pa2">All time</th>
-            </tr>
-        </thead>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% if clusters or queue_stats %}
+<h2 class="">Queue stats</h2>
+<table class="table collapse f5 mv4">
+    <thead>
+        <tr>
+            <th class="bb bw1 b--light-gray tl pa2"></th>
+            <th class="bb bw1 b--light-gray tr pa2">Today</th>
+            <th class="bb bw1 b--light-gray tr pa2">Yesterday</th>
+            <th class="bb bw1 b--light-gray tr pa2">All time</th>
+        </tr>
+    </thead>
     <tbody>
         <tr>
             <th class="tr pa2 v-top">Tasks in queue</th>
@@ -99,44 +143,51 @@
             <td class="tr pa2 v-top">{{ "{:,.0f}".format(queue_stats.success.all_time) }}</td>
         </tr>
     </tbody>
-    </table>
-    {% if clusters %}
-    <div class="overflow-y-scroll">
+</table>
+{% if clusters %}
+<div class="overflow-y-scroll">
     <table class="table collapse w-100 f5">
         <thead>
             <tr>
-                <th class="bb bw1 b--light-gray tl pa2" title="Id of this cluster. Corresponds with the process id.">cluster_id</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="Id of this cluster. Corresponds with the process id.">
+                    cluster_id</th>
                 <th class="bb bw1 b--light-gray tl pa2" title="Time Of Birth">tob</th>
-                <th class="bb bw1 b--light-gray tl pa2" title="Shows the number of seconds passed since the time of birth">uptime</th>
-                <th class="bb bw1 b--light-gray tl pa2" title="The number of times the sentinel had to start a new worker process.">reincarnations</th>
-                <th class="bb bw1 b--light-gray tl pa2" title="String representing the current cluster status.">status</th>
-                <th class="bb bw1 b--light-gray tl pa2" title="The number of tasks currently in the task queue. [1]">task_q_size</th>
-                <th class="bb bw1 b--light-gray tl pa2" title="The number of tasks currently in the result queue. [1]">done_q_size</th>
+                <th class="bb bw1 b--light-gray tl pa2"
+                    title="Shows the number of seconds passed since the time of birth">uptime</th>
+                <th class="bb bw1 b--light-gray tl pa2"
+                    title="The number of times the sentinel had to start a new worker process.">reincarnations</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="String representing the current cluster status.">status
+                </th>
+                <th class="bb bw1 b--light-gray tl pa2" title="The number of tasks currently in the task queue. [1]">
+                    task_q_size</th>
+                <th class="bb bw1 b--light-gray tl pa2" title="The number of tasks currently in the result queue. [1]">
+                    done_q_size</th>
                 <th class="bb bw1 b--light-gray tl pa2" title="The pid of the pusher process">pusher</th>
                 <th class="bb bw1 b--light-gray tl pa2" title="The pid of the monitor process">monitor</th>
                 <th class="bb bw1 b--light-gray tl pa2" title="The pid of the sentinel process">sentinel</th>
-                <th class="bb bw1 b--light-gray tl pa2" title="A list of process ids of the workers currently in the cluster pool.">workers</th>
+                <th class="bb bw1 b--light-gray tl pa2"
+                    title="A list of process ids of the workers currently in the cluster pool.">workers</th>
             </tr>
         </thead>
         <tbody>
-    {% for stat in clusters %}
-        <tr>
-            <td class="tl pa2">{{ stat.cluster_id }}</td>
-            <td class="tl pa2">{{ stat.tob }}</td>
-            <td class="tl pa2">{{ stat.uptime }}</td>
-            <td class="tl pa2">{{ stat.reincarnations }}</td>
-            <td class="tl pa2">{{ stat.status }}</td>
-            <td class="tl pa2">{{ stat.task_q_size }}</td>
-            <td class="tl pa2">{{ stat.done_q_size }}</td>
-            <td class="tl pa2">{{ stat.pusher }}</td>
-            <td class="tl pa2">{{ stat.monitor }}</td>
-            <td class="tl pa2">{{ stat.sentinel }}</td>
-            <td class="tl pa2">{{ stat.workers }}</td>
-        </tr>
-    {% endfor %}
+            {% for stat in clusters %}
+            <tr>
+                <td class="tl pa2">{{ stat.cluster_id }}</td>
+                <td class="tl pa2">{{ stat.tob }}</td>
+                <td class="tl pa2">{{ stat.uptime }}</td>
+                <td class="tl pa2">{{ stat.reincarnations }}</td>
+                <td class="tl pa2">{{ stat.status }}</td>
+                <td class="tl pa2">{{ stat.task_q_size }}</td>
+                <td class="tl pa2">{{ stat.done_q_size }}</td>
+                <td class="tl pa2">{{ stat.pusher }}</td>
+                <td class="tl pa2">{{ stat.monitor }}</td>
+                <td class="tl pa2">{{ stat.sentinel }}</td>
+                <td class="tl pa2">{{ stat.workers }}</td>
+            </tr>
+            {% endfor %}
         </tbody>
     </table>
-    </div>
-    {% endif %}
-    {% endif %}
+</div>
+{% endif %}
+{% endif %}
 {% endblock content %}

@@ -4,15 +4,14 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Max, Min, Q
 from django.shortcuts import render
 from django.utils import timezone
-from django_q.models import Failure, OrmQ, Schedule, Success
+from django_q.models import Failure, OrmQ, Success
 from django_q.monitor import Stat
 
-from documents.models import CharityFinancialYear, Document, DocumentStatus
+from documents.models import CharityFinancialYear, Document, DocumentStatus, Regulators
 
 
 @login_required
 def stats_index(request):
-
     today = timezone.now().date()
 
     income_bands = [
@@ -26,14 +25,38 @@ def stats_index(request):
     financial_years = CharityFinancialYear.objects.values(
         "financial_year_end__year"
     ).annotate(
-        rows=Count("id"),
-        eligible_rows=Count("id", filter=Q(income__gt=25_000)),
-        success=Count("id", filter=Q(status=DocumentStatus.SUCCESS)),
-        failed=Count("id", filter=Q(status=DocumentStatus.FAILED)),
-        attempted=Count("id", filter=Q(status=DocumentStatus.PENDING)),
+        rows=Count("id", filter=Q(charity__source=Regulators.CCEW)),
+        eligible_rows=Count(
+            "id", filter=Q(income__gt=25_000, charity__source=Regulators.CCEW)
+        ),
+        success=Count(
+            "id",
+            filter=Q(status=DocumentStatus.SUCCESS, charity__source=Regulators.CCEW),
+        ),
+        failed=Count(
+            "id",
+            filter=Q(status=DocumentStatus.FAILED, charity__source=Regulators.CCEW),
+        ),
+        failed_to_retry=Count(
+            "id",
+            filter=Q(
+                status=DocumentStatus.FAILED,
+                charity__source=Regulators.CCEW,
+                status_notes="Accounts not found. Available accounts: ",
+            ),
+        ),
+        attempted=Count(
+            "id",
+            filter=Q(status=DocumentStatus.PENDING, charity__source=Regulators.CCEW),
+        ),
         **{
             "income_{}_eligible".format(band[0]): Count(
-                "id", filter=Q(income__gte=band[1], income__lt=band[2])
+                "id",
+                filter=Q(
+                    income__gte=band[1],
+                    income__lt=band[2],
+                    charity__source=Regulators.CCEW,
+                ),
             )
             for band in income_bands
         },
@@ -44,6 +67,7 @@ def stats_index(request):
                     status=DocumentStatus.SUCCESS,
                     income__gte=band[1],
                     income__lt=band[2],
+                    charity__source=Regulators.CCEW,
                 ),
             )
             for band in income_bands
@@ -62,22 +86,35 @@ def stats_index(request):
         }
     )
 
-    financial_years = [
+    financial_years_table = [
         {
             "Year": fy["financial_year_end__year"],
             "Accounts": fy["rows"],
             "Eligible Accounts": fy["eligible_rows"],
             "Successfully fetched": fy["success"],
-            "Failed": fy["failed"],
-            "Attempted": fy["attempted"],
-            "Success %": fy["success"] / fy["rows"],
+            "Failed (need to retry)": fy["failed_to_retry"],
+            "Failed (other)": fy["failed"] - fy["failed_to_retry"],
+            "Pending": fy["attempted"],
+            "Success %": (fy["success"] / fy["rows"]) if fy["rows"] else None,
+        }
+        for fy in financial_years
+    ]
+
+    financial_year_bands = [
+        {
+            "Year": fy["financial_year_end__year"],
             **{
-                "{} success %".format(band[0].replace("_", " ")): (
-                    fy["income_{}_success".format(band[0])]
-                    / fy["income_{}_eligible".format(band[0])]
+                "{}".format(band[0].replace("_", " ")): (
+                    "{:,.0f}<br><span class='gray'>({:.1%})</span>".format(
+                        fy["income_{}_success".format(band[0])],
+                        (
+                            fy["income_{}_success".format(band[0])]
+                            / fy["income_{}_eligible".format(band[0])]
+                        ),
+                    )
+                    if fy["income_{}_eligible".format(band[0])]
+                    else None
                 )
-                if fy["income_{}_eligible".format(band[0])]
-                else None
                 for band in income_bands
             },
         }
@@ -156,7 +193,8 @@ def stats_index(request):
         "stats.html.j2",
         dict(
             clusters=Stat.get_all(),
-            fyears=financial_years,
+            fyears=financial_years_table,
+            fyear_bands=financial_year_bands,
             recently_fetched=recently_fetched,
             queue_stats={
                 "in_queue": {
