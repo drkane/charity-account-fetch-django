@@ -5,7 +5,7 @@ requests
 requests-cache
 tqdm
 black
-isort
+ruff
 django-elasticsearch-dsl
 django-q
 jinja2

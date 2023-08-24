@@ -1,19 +1,12 @@
 import csv
 import io
-from typing import Optional
-from uuid import uuid4
 
 from django.contrib.auth.decorators import login_required, permission_required
-from django.http import HttpRequest
-from django.shortcuts import get_object_or_404, redirect, render, resolve_url
+from django.shortcuts import get_object_or_404, render, resolve_url
 from django_htmx.http import HttpResponseClientRedirect
 from django_q.tasks import (
-    Iter,
     Task,
     async_task,
-    count_group,
-    fetch_group,
-    result_group,
 )
 
 from documents.fetch import fetch_documents_for_charity

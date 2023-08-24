@@ -22,7 +22,15 @@ UPDATE_SQL = {
     """,
     "Insert CCEW financial records": """
         insert into documents_charityfinancialyear (
-        financial_year_end, document_due, document_submitted, income, expenditure, charity_id, created_at, updated_at)
+            financial_year_end,
+            document_due,
+            document_submitted,
+            income,
+            expenditure,
+            charity_id,
+            created_at,
+            updated_at
+        )
         select distinct on (registered_charity_number, fin_period_end_date)
             fin_period_end_date as financial_year_end,
             reporting_due_date as document_due,
@@ -92,7 +100,14 @@ UPDATE_SQL = {
     """,
     "Insert OSCR financial records": """
         insert into documents_charityfinancialyear (
-        financial_year_end, document_submitted, income, expenditure, charity_id, created_at, updated_at)
+            financial_year_end,
+            document_submitted,
+            income,
+            expenditure,
+            charity_id,
+            created_at,
+            updated_at
+        )
         select year_end as financial_year_end,
             date_annual_return_received as document_submitted,
             most_recent_year_income as income,

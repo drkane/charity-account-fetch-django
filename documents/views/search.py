@@ -7,7 +7,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render, resolve_url
 from django.utils.text import slugify
 from elasticsearch_dsl import A
-from elasticsearch_dsl.query import SimpleQueryString, Terms
+from elasticsearch_dsl.query import SimpleQueryString
 
 from documents.documents import DocumentDocument as DocumentModel
 from documents.documents import ElasticsearchPaginator
@@ -49,7 +49,11 @@ def search_csv(request):
     response = HttpResponse(
         content_type="text/csv",
         headers={
-            "Content-Disposition": f'attachment; filename="account_search_{slugify(q).replace("-", "_")}.csv"'
+            "Content-Disposition": (
+                'attachment; filename="account_search_{}.csv"'.format(
+                    slugify(q).replace("-", "_")
+                )
+            )
         },
     )
     fields = {

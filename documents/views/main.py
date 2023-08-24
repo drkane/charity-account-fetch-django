@@ -18,7 +18,7 @@ def index(request):
     try:
         response = s.execute()
         elasticsearch_working = True
-    except ConnectionError as e:
+    except ConnectionError:
         response = None
         elasticsearch_working = False
 

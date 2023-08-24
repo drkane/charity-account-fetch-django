@@ -16,7 +16,11 @@ def parse_financial_year_end(s):
 
 
 class Command(BaseCommand):
-    help = "Import records from a directory. Filenames should be in the format ORGID_YYYYMMDD.pdf, eg GB-CHC-1234567_20200101.pdf"
+    help = (
+        "Import records from a directory. "
+        "Filenames should be in the format ORGID_YYYYMMDD.pdf, "
+        "eg GB-CHC-1234567_20200101.pdf"
+    )
 
     def add_arguments(self, parser):
         parser.add_argument("directory", type=str)

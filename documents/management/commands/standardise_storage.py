@@ -1,7 +1,5 @@
 import io
-import os
 import re
-import uuid
 
 from boto3 import session
 from django.conf import settings
@@ -14,6 +12,9 @@ from documents.models import CharityFinancialYear, Document, DocumentStatus
 # <orgid eg GB-CHC-1234567ABDCD>-<year>-<month>-<day>.pdf
 FILENAME_REGEX = re.compile(
     r"(?P<org_id>GB-(CHC|SC|NIC|COH)-[\w]+)-(?P<date>\d{4}-\d{2}-\d{2}).(?P<filetype>(pdf|txt))"
+)
+FILENAME_FORMAT = (
+    "accounts/{filetype}/{org_id_prefix}/Ends{org_id_end}/{org_id}-{date}.{filetype}"
 )
 PDF = "pdf"
 TXT = "txt"
@@ -34,7 +35,7 @@ def get_new_filename(org_id, date, filetype="pdf"):
     if filetype not in FILETYPES:
         raise ValueError("Filetype must be one of {}".format(FILETYPES))
     org_id = org_id.split("-", 2)
-    return "accounts/{filetype}/{org_id_prefix}/Ends{org_id_end}/{org_id}-{date}.{filetype}".format(
+    return FILENAME_FORMAT.format(
         org_id_end=org_id[2][-2:],
         org_id_prefix="-".join(org_id[0:2]),
         org_id="-".join(org_id),
@@ -45,7 +46,6 @@ def get_new_filename(org_id, date, filetype="pdf"):
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-
         # connect to s3
 
         # get all files in s3

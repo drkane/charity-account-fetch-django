@@ -11,7 +11,6 @@ from .models import Document as DocumentModel
 
 @registry.register_document
 class DocumentDocument(Document):
-
     attachment = fields.ObjectField(
         properties={
             "content": fields.TextField(),
@@ -96,15 +95,16 @@ class DocumentDocument(Document):
         # Don't perform an index refresh after every update (overrides global setting):
         # auto_refresh = False
 
-        # Paginate the django queryset used to populate the index with the specified size
-        # (by default it uses the database driver's default setting)
+        # Paginate the django queryset used to populate the index with the specified
+        # size (by default it uses the database driver's default setting)
         # queryset_pagination = 5000
 
 
 class ElasticsearchPaginator(Paginator):
     """
     Override Django's built-in Paginator class to take in a count/total number of items;
-    Elasticsearch provides the total as a part of the query results, so we can minimize hits.
+    Elasticsearch provides the total as a part of the
+    query results, so we can minimize hits.
     """
 
     def __init__(self, *args, params=None, **kwargs):
