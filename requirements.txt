@@ -207,7 +207,7 @@ requests-html==0.10.0
     # via
     #   -r requirements.in
     #   charity-django
-ruff==0.0.285
+ruff==0.5.4
     # via -r requirements.in
 s3transfer==0.6.0
     # via boto3
