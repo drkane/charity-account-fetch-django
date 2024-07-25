@@ -1,13 +1,14 @@
 {% extends "base.html.j2" %}
 {% block content %}
+{% for regulator in regulators %}
 <div class="cf w-100">
-    {% if fyears %}
+    <h2>{{ regulator }}</h2>
+    {% if fyears[regulator] %}
     <div class="fl w-100 w-60-ns pr3">
-        <h2 class="">Accounts available stats</h2>
-        <p>Showing Charity Commission for England and Wales only</p>
+        <h3 class="">Accounts available stats</h3>
         <div class="overflow-y-scroll">
             <table class="table collapse f5 mb5" style="min-width: 100%;">
-                {% for financial_year in fyears %}
+                {% for financial_year in fyears[regulator] %}
                 {% if loop.first %}
                 <thead>
                     <tr>
@@ -38,12 +39,12 @@
         </div>
     </div>
     {% endif %}
-    {% if fyear_bands %}
+    {% if fyear_bands[regulator] %}
     <div class="fl w-100 w-40-ns pl3">
-        <h2 class="">Success by income band</h2>
+        <h3 class="">Success by income band</h3>
         <div class="overflow-y-scroll">
             <table class="table collapse f5 mb5" style="min-width: 100%;">
-                {% for financial_year in fyear_bands %}
+                {% for financial_year in fyear_bands[regulator] %}
                 {% if loop.first %}
                 <thead>
                     <tr>
@@ -77,6 +78,7 @@
     </div>
     {% endif %}
 </div>
+{% endfor %}
 {% if recently_fetched %}
 <h2 class="">Recently fetched data</h2>
 <div class="overflow-y-scroll">

@@ -34,10 +34,9 @@ class Tag(models.Model):
 
 
 class Charity(models.Model):
-
     org_id = models.CharField(max_length=50, primary_key=True)
     source = models.CharField(
-        max_length=4, choices=Regulators.choices, default=Regulators.MAN
+        max_length=4, choices=Regulators.choices, default=Regulators.MAN, db_index=True
     )
     name = models.CharField(max_length=255, null=True, db_index=True)
     date_registered = models.DateField(null=True, blank=True)
@@ -129,7 +128,7 @@ class CharityFinancialYear(models.Model):
     financial_year_end = models.DateField(db_index=True)
     document_due = models.DateField(blank=True, null=True)
     document_submitted = models.DateField(blank=True, null=True)
-    income = models.BigIntegerField(blank=True, null=True)
+    income = models.BigIntegerField(blank=True, null=True, db_index=True)
     expenditure = models.BigIntegerField(blank=True, null=True)
     last_document_fetch_started = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -140,6 +139,7 @@ class CharityFinancialYear(models.Model):
         blank=True,
         null=True,
         default=None,
+        db_index=True,
     )
     task_id = models.CharField(
         max_length=50,
@@ -148,13 +148,16 @@ class CharityFinancialYear(models.Model):
         help_text="Task ID if the document is currently being fetched",
     )
     task_groups = models.ManyToManyField(FetchGroup, related_name="financial_years")
-    status_notes = models.TextField(blank=True, null=True)
+    status_notes = models.TextField(blank=True, null=True, db_index=True)
 
     class Meta:
         unique_together = (
             "charity",
             "financial_year_end",
         )
+        indexes = [
+            models.Index(models.F("financial_year_end__year"), name="year_idx"),
+        ]
 
     @property
     def document_filename(self):

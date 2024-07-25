@@ -23,31 +23,28 @@ def stats_index(request):
     ]
 
     financial_years = CharityFinancialYear.objects.values(
-        "financial_year_end__year"
+        "financial_year_end__year", "charity__source"
     ).annotate(
-        rows=Count("id", filter=Q(charity__source=Regulators.CCEW)),
-        eligible_rows=Count(
-            "id", filter=Q(income__gt=25_000, charity__source=Regulators.CCEW)
-        ),
+        rows=Count("id"),
+        eligible_rows=Count("id", filter=Q(income__gt=25_000)),
         success=Count(
             "id",
-            filter=Q(status=DocumentStatus.SUCCESS, charity__source=Regulators.CCEW),
+            filter=Q(status=DocumentStatus.SUCCESS),
         ),
         failed=Count(
             "id",
-            filter=Q(status=DocumentStatus.FAILED, charity__source=Regulators.CCEW),
+            filter=Q(status=DocumentStatus.FAILED),
         ),
         failed_to_retry=Count(
             "id",
             filter=Q(
                 status=DocumentStatus.FAILED,
-                charity__source=Regulators.CCEW,
                 status_notes="Accounts not found. Available accounts: ",
             ),
         ),
         attempted=Count(
             "id",
-            filter=Q(status=DocumentStatus.PENDING, charity__source=Regulators.CCEW),
+            filter=Q(status=DocumentStatus.PENDING),
         ),
         **{
             "income_{}_eligible".format(band[0]): Count(
@@ -55,7 +52,6 @@ def stats_index(request):
                 filter=Q(
                     income__gte=band[1],
                     income__lt=band[2],
-                    charity__source=Regulators.CCEW,
                 ),
             )
             for band in income_bands
@@ -67,7 +63,6 @@ def stats_index(request):
                     status=DocumentStatus.SUCCESS,
                     income__gte=band[1],
                     income__lt=band[2],
-                    charity__source=Regulators.CCEW,
                 ),
             )
             for band in income_bands
@@ -76,50 +71,65 @@ def stats_index(request):
     financial_years = [
         fy for fy in financial_years if fy["financial_year_end__year"] > 2013
     ]
-    financial_years.append(
-        {
-            **{
-                k: sum((fy[k] or 0) for fy in financial_years)
-                for k in financial_years[0].keys()
-            },
-            "financial_year_end__year": "Total",
-        }
-    )
-
-    financial_years_table = [
-        {
-            "Year": fy["financial_year_end__year"],
-            "Accounts": fy["rows"],
-            "Eligible Accounts": fy["eligible_rows"],
-            "Successfully fetched": fy["success"],
-            "Failed (need to retry)": fy["failed_to_retry"],
-            "Failed (other)": fy["failed"] - fy["failed_to_retry"],
-            "Pending": fy["attempted"],
-            "Success %": (fy["success"] / fy["rows"]) if fy["rows"] else None,
-        }
-        for fy in financial_years
-    ]
-
-    financial_year_bands = [
-        {
-            "Year": fy["financial_year_end__year"],
-            **{
-                "{}".format(band[0].replace("_", " ")): (
-                    "{:,.0f}<br><span class='gray'>({:.1%})</span>".format(
-                        fy["income_{}_success".format(band[0])],
-                        (
-                            fy["income_{}_success".format(band[0])]
-                            / fy["income_{}_eligible".format(band[0])]
-                        ),
+    for regulator in Regulators:
+        financial_years.append(
+            {
+                **{
+                    k: sum(
+                        (fy[k] or 0)
+                        for fy in financial_years
+                        if fy["charity__source"] == regulator
                     )
-                    if fy["income_{}_eligible".format(band[0])]
-                    else None
-                )
-                for band in income_bands
-            },
-        }
-        for fy in financial_years
-    ]
+                    for k in financial_years[0].keys()
+                    if k not in ("financial_year_end__year", "charity__source")
+                },
+                "financial_year_end__year": "Total",
+                "charity__source": regulator,
+            }
+        )
+
+    financial_years_tables = {
+        regulator: [
+            {
+                "Year": fy["financial_year_end__year"],
+                "Accounts": fy["rows"],
+                "Eligible Accounts": fy["eligible_rows"],
+                "Successfully fetched": fy["success"],
+                "Failed (need to retry)": fy["failed_to_retry"],
+                "Failed (other)": fy["failed"] - fy["failed_to_retry"],
+                "Pending": fy["attempted"],
+                "Success %": (fy["success"] / fy["rows"]) if fy["rows"] else None,
+            }
+            for fy in financial_years
+            if fy["charity__source"] == regulator
+        ]
+        for regulator in Regulators
+    }
+
+    financial_year_bands = {
+        regulator: [
+            {
+                "Year": fy["financial_year_end__year"],
+                **{
+                    "{}".format(band[0].replace("_", " ")): (
+                        "{:,.0f}<br><span class='gray'>({:.1%})</span>".format(
+                            fy["income_{}_success".format(band[0])],
+                            (
+                                fy["income_{}_success".format(band[0])]
+                                / fy["income_{}_eligible".format(band[0])]
+                            ),
+                        )
+                        if fy["income_{}_eligible".format(band[0])]
+                        else None
+                    )
+                    for band in income_bands
+                },
+            }
+            for fy in financial_years
+            if fy["charity__source"] == regulator
+        ]
+        for regulator in Regulators
+    }
 
     days_ago_14 = today - datetime.timedelta(days=14)
     recently_fetched = (
@@ -193,9 +203,10 @@ def stats_index(request):
         "stats.html.j2",
         dict(
             clusters=Stat.get_all(),
-            fyears=financial_years_table,
+            fyears=financial_years_tables,
             fyear_bands=financial_year_bands,
             recently_fetched=recently_fetched,
+            regulators=Regulators,
             queue_stats={
                 "in_queue": {
                     "today": OrmQ.objects.filter(lock__date=today).count(),
