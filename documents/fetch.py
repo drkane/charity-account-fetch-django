@@ -214,6 +214,7 @@ def fetch_account(
     document.pages = filedata["pages"]
     document.content_type = filedata["content_type"]
     document.language = filedata["language"]
+    document.process_type = Document.DocumentProcessType.AS_SUPPLIED
     document.save()
     logging.info(
         "PDF file fetched pages: {:,.0f} size: {:,.0f}".format(
@@ -238,6 +239,7 @@ def fetch_account(
             document.pages = filedata["pages"]
             document.content_type = filedata["content_type"]
             document.language = filedata["language"]
+            document.process_type = Document.DocumentProcessType.OCR
             document.save()
             logging.info(
                 "PDF file OCR pages: {:,.0f} size: {:,.0f}".format(

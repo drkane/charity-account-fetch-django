@@ -185,6 +185,10 @@ class Document(models.Model):
     class DocumentLanguages(models.TextChoices):
         EN = "en", _("English")
 
+    class DocumentProcessType(models.TextChoices):
+        AS_SUPPLIED = "AS", _("As supplied")
+        OCR = "OCR", _("OCR")
+
     financial_year = models.ForeignKey(
         CharityFinancialYear, on_delete=models.CASCADE, related_name="documents"
     )
@@ -207,6 +211,13 @@ class Document(models.Model):
     pages = models.IntegerField(blank=True, null=True)
     file = models.FileField(upload_to="accounts/pdf", blank=True, null=True)
     file_text = models.FileField(upload_to="accounts/txt", blank=True, null=True)
+    process_type = models.CharField(
+        max_length=3,
+        choices=DocumentProcessType.choices,
+        default=None,
+        blank=True,
+        null=True,
+    )
 
     tags = models.ManyToManyField(Tag, blank=True, related_name="documents")
 
