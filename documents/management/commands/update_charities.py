@@ -58,7 +58,6 @@ UPDATE_SQL = {
             NOW() as created_at,
             NOW() as updated_at
         from ccni_charity
-        where sub_charity_number = 0
         ON CONFLICT(org_id) DO UPDATE
         SET name = excluded.name,
             date_registered = excluded.date_registered,
