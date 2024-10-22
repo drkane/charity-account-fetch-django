@@ -154,7 +154,7 @@ pdfminer-six==20220524
     #   pdfplumber
 pdfplumber==0.7.4
     # via -r requirements.in
-pikepdf==5.5.0
+pikepdf==8.4.1
     # via
     #   img2pdf
     #   ocrmypdf
