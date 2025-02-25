@@ -13,32 +13,32 @@
 <div class="w-20-l fl-l pr4-l pb3">
     {% if result.financial_year %}
     <h2 class="lh-solid mb2">
-        <a href='{{ url_for("charity.charity_get", regno=result.financial_year.charity.org_id) }}' class="link blue b">{{result.financial_year.charity.name}}</a>
+        <a href='{{ url_for("charity.charity_get", regno=result.financial_year.charity.org_id) }}'
+            class="link blue b">{{result.financial_year.charity.name}}</a>
     </h2>
-    <p class="mt0 mb3 f4"><!--Financial year end:<br>-->Year ending {{result.financial_year.financial_year_end|dateformat(o='%d %B %Y')}}</p>
+    <p class="mt0 mb3 f4"><!--Financial year end:<br>-->Year ending
+        {{result.financial_year.financial_year_end|dateformat(o='%d %B %Y')}}</p>
     {% else %}
     <h2>Document <code>{{result.id}}</code></h2>
     {% endif %}
     <div class="cf w-100">
-    {% for tag in result.tags.all() %}
-    <span class="pv2 ph3 br-pill bg-light-gray black f6 mr2 mb2 dib fl">Tag: {{ tag }}</span>
-    {% endfor %}
+        {% for tag in result.tags.all() %}
+        <span class="pv2 ph3 br-pill bg-light-gray black f6 mr2 mb2 dib fl">Tag: {{ tag }}</span>
+        {% endfor %}
     </div>
     {% if result.pages %}
     <p>{{result.pages}} pages</p>
     {% endif %}
     <form class="">
-        <input type="search" name="q" value="{{ (highlight or '')|e}}" 
-            class="f4 f3-l input-reset ba b--black-20 fl near-black bg-white pa3 lh-solid w-100 br2-ns" 
+        <input type="search" name="q" value="{{ (highlight or '')|e}}"
+            class="f4 f3-l input-reset ba b--black-20 fl near-black bg-white pa3 lh-solid w-100 br2-ns"
             placeholder='search term' />
-        <input class="f4 button-reset ba b--black-20 fl pv2 tc bg-animate bg-yellow dim near-black pointer w-100 br2-ns mt2"
-            type="submit" 
-            value="Search this doc" />
-        <input class="f4 button-reset ba b--black-20 fl pv2 tc bg-animate bg-washed-purple dim near-black pointer w-100 br2-ns mt2"
-            type="submit"
-            value="Search all docs"
-            name=""
-            formaction="{{url_for('doc.doc_search', q=highlight)}}"
+        <input
+            class="f4 button-reset ba b--black-20 fl pv2 tc bg-animate bg-yellow dim near-black pointer w-100 br2-ns mt2"
+            type="submit" value="Search this doc" />
+        <input
+            class="f4 button-reset ba b--black-20 fl pv2 tc bg-animate bg-washed-purple dim near-black pointer w-100 br2-ns mt2"
+            type="submit" value="Search all docs" name="" formaction="{{url_for('doc.doc_search', q=highlight)}}"
             placeholder="">
     </form>
     {% if highlight %}
@@ -83,18 +83,19 @@
     <h3 class="ma0 pa0 f4">
         Document content
         <span class="f6 normal">
-         - <a href="{{doc_content_url}}" class="link blue" target="_blank">View in new window</a>
+            - <a href="{{doc_content_url}}" class="link blue" target="_blank">View in new window</a>
         </span>
     </h3>
-    <iframe src='{{doc_content_url}}' class="w-100 vh-75 b--light-gray bw1 ba bg-washed-yellow" id="doc-preview"></iframe>
+    <iframe src='{{doc_content_url}}' class="w-100 vh-75 b--light-gray bw1 ba bg-washed-yellow"
+        id="doc-preview"></iframe>
 </div>
 <div class="w-100 w-40-l fl-l pl4-l">
     <h3 class="ma0 pa0 f4">
         Document preview
         <span class="f6 normal">
-         - <a href="{{doc_pdf_url}}" class="link blue" target="_blank">View in new window</a>
+            - <a href="{{doc_pdf_url}}" class="link blue" target="_blank">View in new window</a>
         </span>
-    </h3> 
+    </h3>
     <object data="{{doc_pdf_url}}" type="application/pdf" class="w-100 vh-75">
         <embed src="{{doc_pdf_url}}" type="application/pdf" />
     </object>
@@ -103,115 +104,115 @@
 
 {% block bodyscripts %}
 <script type='text/javascript'>
-var currentMatch = 1;
-var currentPage = 1;
-const matchCounts = {{highlight_count|tojson}};
-const pageCounts = {{result.pages|tojson}};
+    var currentMatch = 1;
+    var currentPage = 1;
+    const matchCounts = {{ highlight_count| tojson}};
+    const pageCounts = {{ result.pages| tojson}};
 
-const updateCurrentMatch = function(n){
-    if(document.getElementById('currentMatch')){
-        currentMatch = Math.min(Math.max(n, 1), matchCounts);
-        document.getElementById('currentMatch').innerText = currentMatch;
-        document.getElementById('doc-preview').contentWindow.location.hash = 'match-' + currentMatch;
-        if(currentMatch == 1){
-            document.getElementById('move-to-previous').classList.add('o-0');
-            document.getElementById('move-to-first').classList.add('o-0');
-        } else {
-            document.getElementById('move-to-previous').classList.remove('o-0');
-            document.getElementById('move-to-first').classList.remove('o-0');
-        }
-        if(currentMatch == matchCounts){
-            document.getElementById('move-to-next').classList.add('o-0');
-            document.getElementById('move-to-last').classList.add('o-0');
-        } else {
-            document.getElementById('move-to-next').classList.remove('o-0');
-            document.getElementById('move-to-last').classList.remove('o-0');
+    const updateCurrentMatch = function (n) {
+        if (document.getElementById('currentMatch')) {
+            currentMatch = Math.min(Math.max(n, 1), matchCounts);
+            document.getElementById('currentMatch').innerText = currentMatch;
+            document.getElementById('doc-preview').contentWindow.location.hash = 'match-' + currentMatch;
+            if (currentMatch == 1) {
+                document.getElementById('move-to-previous').classList.add('o-0');
+                document.getElementById('move-to-first').classList.add('o-0');
+            } else {
+                document.getElementById('move-to-previous').classList.remove('o-0');
+                document.getElementById('move-to-first').classList.remove('o-0');
+            }
+            if (currentMatch == matchCounts) {
+                document.getElementById('move-to-next').classList.add('o-0');
+                document.getElementById('move-to-last').classList.add('o-0');
+            } else {
+                document.getElementById('move-to-next').classList.remove('o-0');
+                document.getElementById('move-to-last').classList.remove('o-0');
+            }
         }
     }
-}
-updateCurrentMatch(1);
+    updateCurrentMatch(1);
 
-const updateCurrentPage = function(n){
-    if(document.getElementById('currentPage')){
-        currentPage = Math.min(Math.max(n, 1), pageCounts);
-        document.getElementById('currentPage').innerText = currentPage;
-        document.getElementById('doc-preview').contentWindow.location.hash = 'page-' + currentPage;
-        if(currentPage == 1){
-            document.getElementById('move-to-previous').classList.add('o-0');
-            document.getElementById('move-to-first').classList.add('o-0');
-        } else {
-            document.getElementById('move-to-previous').classList.remove('o-0');
-            document.getElementById('move-to-first').classList.remove('o-0');
-        }
-        if(currentPage == pageCounts){
-            document.getElementById('move-to-next').classList.add('o-0');
-            document.getElementById('move-to-last').classList.add('o-0');
-        } else {
-            document.getElementById('move-to-next').classList.remove('o-0');
-            document.getElementById('move-to-last').classList.remove('o-0');
+    const updateCurrentPage = function (n) {
+        if (document.getElementById('currentPage')) {
+            currentPage = Math.min(Math.max(n, 1), pageCounts);
+            document.getElementById('currentPage').innerText = currentPage;
+            document.getElementById('doc-preview').contentWindow.location.hash = 'page-' + currentPage;
+            if (currentPage == 1) {
+                document.getElementById('move-to-previous').classList.add('o-0');
+                document.getElementById('move-to-first').classList.add('o-0');
+            } else {
+                document.getElementById('move-to-previous').classList.remove('o-0');
+                document.getElementById('move-to-first').classList.remove('o-0');
+            }
+            if (currentPage == pageCounts) {
+                document.getElementById('move-to-next').classList.add('o-0');
+                document.getElementById('move-to-last').classList.add('o-0');
+            } else {
+                document.getElementById('move-to-next').classList.remove('o-0');
+                document.getElementById('move-to-last').classList.remove('o-0');
+            }
         }
     }
-}
-updateCurrentPage(1);
+    updateCurrentPage(1);
 
-Array.from(document.getElementsByClassName('move-to-match')).forEach((el) => {
-    el.addEventListener('click', (e) => {
-        e.preventDefault();
-        let moveTo = new URL(e.target.href).hash;
-        var n = currentMatch;
-        if(moveTo == '#previous-match'){
-            n = currentMatch - 1;
-        } else if(moveTo == '#next-match'){
-            n = currentMatch + 1;
-        } else if(moveTo == '#first-match'){
-            n = 1;
-        } else if(moveTo == '#last-match'){
-            n = matchCounts;
-        } else {
-            n = parseInt(moveTo.replace("#match-", ''));
-        }
-        updateCurrentMatch(n);
-    })
-});
-
-Array.from(document.getElementsByClassName('move-to-page')).forEach((el) => {
-    el.addEventListener('click', (e) => {
-        e.preventDefault();
-        let moveTo = new URL(e.target.href).hash;
-        var n = currentMatch;
-        if(moveTo == '#previous-page'){
-            n = currentPage - 1;
-        } else if(moveTo == '#next-page'){
-            n = currentPage + 1;
-        } else if(moveTo == '#first-page'){
-            n = 1;
-        } else if(moveTo == '#last-page'){
-            n = pageCounts;
-        } else {
-            n = parseInt(moveTo.replace("#page-", ''));
-        }
-        updateCurrentPage(n);
-    })
-});
-
-var moveToMatchSelect = document.getElementById('move-to-match-select');
-if(moveToMatchSelect){
-    moveToMatchSelect.addEventListener('change', (e) => {
-        e.preventDefault();
-        if(e.target.value){
-            updateCurrentMatch(parseInt(e.target.value));
-        }
+    Array.from(document.getElementsByClassName('move-to-match')).forEach((el) => {
+        el.addEventListener('click', (e) => {
+            e.preventDefault();
+            let moveTo = new URL(e.target.href).hash;
+            var n = currentMatch;
+            if (moveTo == '#previous-match') {
+                n = currentMatch - 1;
+            } else if (moveTo == '#next-match') {
+                n = currentMatch + 1;
+            } else if (moveTo == '#first-match') {
+                n = 1;
+            } else if (moveTo == '#last-match') {
+                n = matchCounts;
+            } else {
+                n = parseInt(moveTo.replace("#match-", ''));
+            }
+            updateCurrentMatch(n);
+        })
     });
-}
 
-var moveToPageSelect = document.getElementById('move-to-page-select');
-if(moveToPageSelect){
-    document.getElementById('move-to-page-select').addEventListener('change', (e) => {
-        e.preventDefault();
-        if(e.target.value){
-            updateCurrentPage(parseInt(e.target.value));
-        }
+    Array.from(document.getElementsByClassName('move-to-page')).forEach((el) => {
+        el.addEventListener('click', (e) => {
+            e.preventDefault();
+            let moveTo = new URL(e.target.href).hash;
+            var n = currentMatch;
+            if (moveTo == '#previous-page') {
+                n = currentPage - 1;
+            } else if (moveTo == '#next-page') {
+                n = currentPage + 1;
+            } else if (moveTo == '#first-page') {
+                n = 1;
+            } else if (moveTo == '#last-page') {
+                n = pageCounts;
+            } else {
+                n = parseInt(moveTo.replace("#page-", ''));
+            }
+            updateCurrentPage(n);
+        })
     });
-}
+
+    var moveToMatchSelect = document.getElementById('move-to-match-select');
+    if (moveToMatchSelect) {
+        moveToMatchSelect.addEventListener('change', (e) => {
+            e.preventDefault();
+            if (e.target.value) {
+                updateCurrentMatch(parseInt(e.target.value));
+            }
+        });
+    }
+
+    var moveToPageSelect = document.getElementById('move-to-page-select');
+    if (moveToPageSelect) {
+        document.getElementById('move-to-page-select').addEventListener('change', (e) => {
+            e.preventDefault();
+            if (e.target.value) {
+                updateCurrentPage(parseInt(e.target.value));
+            }
+        });
+    }
 </script>
 {% endblock %}

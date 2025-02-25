@@ -1,0 +1,5 @@
+python ./manage.py logcommand "import_ccew"
+python ./manage.py logcommand "import_ccni"
+python ./manage.py logcommand "import_oscr"
+python ./manage.py logcommand "update_charities"
+python ./manage.py logcommand "reset_failed_accounts"

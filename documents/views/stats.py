@@ -5,7 +5,7 @@ from django.db.models import Count, Max, Min, Q
 from django.shortcuts import render
 from django.utils import timezone
 from django_q.models import Failure, OrmQ, Success
-from django_q.monitor import Stat
+from django_q.status import Stat
 
 from documents.models import CharityFinancialYear, Document, DocumentStatus, Regulators
 

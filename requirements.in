@@ -4,10 +4,9 @@ dj-database-url
 requests
 requests-cache
 tqdm
-black
 ruff
 django-elasticsearch-dsl
-django-q
+django-q2
 jinja2
 pdfplumber
 python-dotenv
@@ -22,4 +21,4 @@ django-debug-toolbar
 django-storages
 boto3
 psutil
-git+https://github.com/kanedata/charity-django.git@v0.18.0#egg=charity_django
+git+https://github.com/kanedata/charity-django.git@v0.19.2#egg=charity_django

@@ -1,36 +1,20 @@
 {
-    "formation": {
-        "web": {
-            "quantity": 2
-        },
-        "worker": {
-            "quantity": 1
-        }
+  "formation": {
+    "web": {
+      "quantity": 2
     },
-    "cron": [
-        {
-            "command": "python ./manage.py import_oscr",
-            "schedule": "46 20 * * 5"
-        },
-        {
-            "command": "python ./manage.py import_ccew",
-            "schedule": "16 2 * * 6"
-        },
-        {
-            "command": "python ./manage.py import_ccni",
-            "schedule": "46 2 * * 6"
-        },
-        {
-            "command": "python ./manage.py update_charities",
-            "schedule": "56 2 * * 6"
-        },
-        {
-            "command": "python ./manage.py queue_latest_documents -n 10000 -p 15",
-            "schedule": "3 1 * * *"
-        },
-        {
-            "command": "python ./manage.py reset_failed_accounts",
-            "schedule": "56 0 * * 2"
-        }
-    ]
+    "worker": {
+      "quantity": 1
+    }
+  },
+  "cron": [
+    {
+      "command": "sh ./update_weekly.sh",
+      "schedule": "46 20 * * 5"
+    },
+    {
+      "command": "sh ./update_daily.sh",
+      "schedule": "3 1 * * *"
+    }
+  ]
 }

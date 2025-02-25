@@ -3,6 +3,7 @@ import uuid
 from autoslug import AutoSlugField
 from charity_django.utils.text import to_titlecase
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_q.tasks import Task, count_group, fetch_group
@@ -229,3 +230,6 @@ class Document(models.Model):
 
     def __str__(self):
         return self.financial_year.__str__()
+
+    def get_absolute_url(self):
+        return reverse("doc.doc_get", kwargs={"id": self.id})
