@@ -56,9 +56,7 @@ class Command(BaseCommand):
         ).order_by(
             F("financial_year_end__year").asc(nulls_last=True),
             F("income").desc(nulls_last=True),
-        )[
-            :n
-        ]
+        )[:n]
 
         for record in documents:
             task_id = async_task(

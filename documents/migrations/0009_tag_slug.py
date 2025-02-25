@@ -17,7 +17,6 @@ def migrate_data_backward(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("documents", "0008_charity_created_at_charity_updated_at_and_more"),
     ]

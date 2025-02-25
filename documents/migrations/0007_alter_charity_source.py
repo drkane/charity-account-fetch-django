@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("documents", "0006_alter_charityfinancialyear_document_due"),
     ]

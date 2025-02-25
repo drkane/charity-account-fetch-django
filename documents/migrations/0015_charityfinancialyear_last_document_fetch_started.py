@@ -23,7 +23,6 @@ def update_last_fetch_started(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("documents", "0014_alter_charity_date_registered_and_more"),
     ]

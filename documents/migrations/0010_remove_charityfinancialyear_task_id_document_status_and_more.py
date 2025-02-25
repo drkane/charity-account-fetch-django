@@ -24,7 +24,6 @@ def migrate_data_backward(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("documents", "0009_tag_slug"),
     ]

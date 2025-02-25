@@ -9,7 +9,6 @@ from documents.models import Tag
 
 @login_required
 def index(request):
-
     # get count for all tags
     s = DocumentModel.search()
     tag_agg = A("terms", field="tags")
