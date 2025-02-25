@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django_elasticsearch_dsl import Document, fields
 from django_elasticsearch_dsl.registries import registry
 
-from .models import Document as DocumentModel
+from documents.models import Document as DocumentModel
 
 
 @registry.register_document

@@ -4,10 +4,7 @@ import io
 from django.contrib.auth.decorators import login_required, permission_required
 from django.shortcuts import get_object_or_404, render, resolve_url
 from django_htmx.http import HttpResponseClientRedirect
-from django_q.tasks import (
-    Task,
-    async_task,
-)
+from django_q.tasks import Task, async_task
 
 from documents.fetch import fetch_documents_for_charity
 from documents.models import Charity, CharityFinancialYear, FetchGroup, Tag
@@ -73,7 +70,6 @@ def get_record_meta(request):
 
 
 def get_status(record: CharityFinancialYear, documents):
-
     # record has at least one document
     if len(documents) > 0:
         return "Document available"
@@ -92,7 +88,6 @@ def get_status(record: CharityFinancialYear, documents):
 @login_required
 @permission_required("documents.add_document")
 def bulk_load_list(request):
-
     charity_list = io.StringIO(request.POST.get("list"))
     source = "textarea"
     reader = csv.reader(charity_list)
