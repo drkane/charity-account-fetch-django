@@ -1,5 +1,4 @@
 django
-django-q
 dj-database-url
 requests
 requests-cache
